@@ -31,7 +31,8 @@ class CatGenieUpdateCoordinator(DataUpdateCoordinator[CatGenieDeviceStatusData])
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(hours=1),
+            update_interval=timedelta(seconds=15),
+            always_update=True,
         )
         
         self.client = client
@@ -48,8 +49,8 @@ class CatGenieUpdateCoordinator(DataUpdateCoordinator[CatGenieDeviceStatusData])
         """
         if self.client._access_token is None:
             await self.client.async_get_access_token()
-        devices = await self.client.async_get_devices()
-        self.device = devices.values()[0]
+        # devices = await self.client.async_get_devices()
+        self.device = await self.client.async_get_first_device() # devices.values()[0]
 
     async def _async_update_data(self) -> CatGenieDeviceStatusData:
         """Update data via library."""
@@ -63,6 +64,8 @@ class CatGenieUpdateCoordinator(DataUpdateCoordinator[CatGenieDeviceStatusData])
             raise ConfigEntryAuthFailed(exception) from exception
         except CatGenieApiClientError as exception:
             raise UpdateFailed(exception) from exception
+        except Exception as exception:
+            raise f"Unknown error: {exception}" from exception
             # status = await self.client.async_get_device_status(device_id)
             # return CatGenieDeviceStatusData(
             #     state=status["state"],
@@ -91,7 +94,7 @@ class CatGenieUpdateCoordinator(DataUpdateCoordinator[CatGenieDeviceStatusData])
         #     except CatGenieApiClientError as exception:
         #         raise UpdateFailed(exception) from exception
             
-        # return CatGenieData(
+        # return CatGenieDeviceStatusData(
         #     client=self.client,
         #     devices=devices,
         # )

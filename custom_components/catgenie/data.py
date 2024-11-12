@@ -36,7 +36,7 @@ class CatGenieDeviceStatusData:
 
 
 # @dataclass
-# class CatGenieData:
+# class CatGenieDeviceStatusData:
 #     """Data for the Cat Genie integration."""
 # 
 #     client: CatGenieApiClient

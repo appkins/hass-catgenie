@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import socket
 from typing import Any
 
@@ -44,7 +45,17 @@ class CatGenieApiClient:
         session: aiohttp.ClientSession,
     ) -> None:
         """Sample API Client."""
-        self._base_url = "https://iot.petnovations.com"
+        self._host = "iot.petnovations.com"
+        self._base_url = f"https://{self._host}"
+        session._base_url = self._base_url
+        session.headers.update({
+            "host": self._host,
+            "user-agent": "CatGenie/493 CFNetwork/1559 Darwin/24.0.0",
+            "connection": "keep-alive",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, deflate, br",
+            "accept-language": "en-US,en;q=0.9",
+        })
         self._refresh_token = refresh_token
         self._access_token = None
         self._session = session
@@ -56,6 +67,11 @@ class CatGenieApiClient:
             method="get",
             url="/device/device",
         )
+        
+    async def async_get_first_device(self) -> Any:
+        """Get data from the API."""
+        resp = await self._api_wrapper("GET", url="/device/device")
+        return resp["thingList"][0]
     
     async def async_get_devices(self) -> dict:
         """Obtain the list of devices associated to a user."""
@@ -72,6 +88,18 @@ class CatGenieApiClient:
             method="GET",
             url=f"/device/management/{id}/operation/status"
         )
+        
+    async def async_device_operation(self, id, state: int = 1) -> Any:
+        """Obtain the list of devices associated to a user."""
+        data = {"state": state}
+        data_str = json.dumps(data)
+        data_len = len(data_str)
+        return await self._api_wrapper(
+            method="POST",
+            url=f"/device/management/{id}/operation",
+            data={"state": state},
+            headers={"content-type": "application/json", "content-length": data_len},
+        )
     
     async def async_get_access_token(self) -> Any:
         """Obtain a valid access token."""
@@ -84,12 +112,12 @@ class CatGenieApiClient:
                     method="POST",
                     url=full_url,
                     headers={
-                        "host": "iot.petnovations.com",
-                        "content-type": "application/json",
+                        "host": self._host,
+                        # "content-type": "application/json",
                         "connection": "keep-alive",
                         "accept": "application/json, text/plain, */*",
                         "user-agent": "CatGenie/493 CFNetwork/1562 Darwin/24.0.0",
-                        "content-length": "464",
+                        # "content-length": "464",
                         "accept-language": "en-US,en;q=0.9",
                         "accept-encoding": "gzip, deflate, br",
                     },
@@ -108,8 +136,8 @@ class CatGenieApiClient:
                 # self._access_token = r_json["result"]["token"]
                 self._access_token = r_json["token"]
                 return self._access_token
-        except:
-            return "Request failed, status ConnectionError"
+        except aiohttp.ClientError as exception:
+            return f"Request failed, status ConnectionError: {exception}"
 
     async def _api_wrapper(
         self,
@@ -130,7 +158,7 @@ class CatGenieApiClient:
             "user-agent": "CatGenie/493 CFNetwork/1559 Darwin/24.0.0",
             "connection": "keep-alive",
             "accept": "application/json, text/plain, */*",  
-            "host": "iot.petnovations.com",
+            "host": self._host,
             "accept-encoding": "gzip, deflate, br",
             "accept-language": "en-US,en;q=0.9",
         }
