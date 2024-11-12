@@ -18,12 +18,12 @@ from .const import DOMAIN, LOGGER
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-    from .data import CatGenieConfigEntry
+    from .data import CatGenieConfigEntry, CatGenieDevice
 
 type Status = dict[str, Any] | None
 
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-class CatGenieUpdateCoordinator(DataUpdateCoordinator[Status]):
+class CatGenieUpdateCoordinator(DataUpdateCoordinator[dict[str, CatGenieDevice]]):
     """Class to manage fetching data from the API."""
 
     config_entry: CatGenieConfigEntry
@@ -53,21 +53,25 @@ class CatGenieUpdateCoordinator(DataUpdateCoordinator[Status]):
             await self.config_entry.runtime_data.client.async_get_access_token()
         self._devices = await self.config_entry.runtime_data.client.async_get_devices()
 
-    async def _async_update_data(self) -> Any:
+    async def _async_update_data(self) -> dict[str, CatGenieDevice]:
         """Update data via library."""
+        
+        devices: dict[str, CatGenieDevice] = {}
 
-        device_statuses = {}
+        # device_statuses = {}
 
-        for device_id in self._devices.keys():
+        for device_id, device in self._devices.items():
             try:
                 device_status = await self.config_entry.runtime_data.client.async_get_device_status(device_id)
-                device_statuses[device_id] = device_status
+                
+                devices[device_id] = CatGenieDevice(device.fwVersion, device.mac, device.name, device.serial, device_status)
+                # device_statuses[device_id] = device_status
             except CatGenieApiClientAuthenticationError as exception:
                 raise ConfigEntryAuthFailed(exception) from exception
             except CatGenieApiClientError as exception:
                 raise UpdateFailed(exception) from exception
             
-        return device_statuses
+        return devices # device_statuses
 
         # try:
         #     # Note: asyncio.TimeoutError and aiohttp.ClientError are already

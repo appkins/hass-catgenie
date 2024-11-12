@@ -44,7 +44,7 @@ class CatGenieApiClient:
         session: aiohttp.ClientSession,
     ) -> None:
         """Sample API Client."""
-        self._base_url = f"https://iot.petnovations.com"
+        self._base_url = "https://iot.petnovations.com"
         self._refresh_token = refresh_token
         self._access_token = None
         self._session = session
@@ -81,7 +81,7 @@ class CatGenieApiClient:
         try:
             async with async_timeout.timeout(10):
                 response = await self._session.request(
-                    method="GET",
+                    method="POST",
                     url=full_url,
                     headers={
                         "host": "iot.petnovations.com",
@@ -102,22 +102,14 @@ class CatGenieApiClient:
                     return "Request failed, status " + str(response.status)
                 
                 r_json =  await response.json()
-                if not r_json["success"]:
-                    return f"Error {r_json['code']}: {r_json['msg']}"
+                # if not r_json["success"]:
+                #     return f"Error {r_json['code']}: {r_json['msg']}"
                 
-                self._access_token = r_json["result"]["token"]
+                # self._access_token = r_json["result"]["token"]
+                self._access_token = r_json["token"]
                 return self._access_token
         except:
             return "Request failed, status ConnectionError"
-
-    async def async_set_title(self, value: str) -> Any:
-        """Get data from the API."""
-        return await self._api_wrapper(
-            method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"title": value},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
 
     async def _api_wrapper(
         self,
@@ -127,8 +119,14 @@ class CatGenieApiClient:
         headers: dict | None = None,
     ) -> Any:
         """Get information from the API."""
+        
+        access_token = self._access_token
+        
+        if access_token is None:
+            access_token = await self.async_get_access_token()
+        
         default_headers = {
-            "authorization": f"Bearer {self._access_token}",
+            "authorization": f"Bearer {access_token}",
             "user-agent": "CatGenie/493 CFNetwork/1559 Darwin/24.0.0",
             "connection": "keep-alive",
             "accept": "application/json, text/plain, */*",  
@@ -136,6 +134,9 @@ class CatGenieApiClient:
             "accept-encoding": "gzip, deflate, br",
             "accept-language": "en-US,en;q=0.9",
         }
+        
+        if headers is None:
+            headers = {}
 
         full_url = self._base_url + url
 

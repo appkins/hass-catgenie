@@ -15,10 +15,9 @@ class CatGenieEntity(CoordinatorEntity[CatGenieUpdateCoordinator]):
 
     _attr_attribution = ATTRIBUTION
 
-    def __init__(self, coordinator: CatGenieUpdateCoordinator, idx) -> None:
+    def __init__(self, coordinator: CatGenieUpdateCoordinator) -> None:
         """Initialize."""
-        super().__init__(coordinator, context=idx)
-        self.idx = idx
+        super().__init__(coordinator)
         self._attr_unique_id = coordinator.config_entry.entry_id
         self._attr_device_info = DeviceInfo(
             identifiers={
@@ -32,5 +31,5 @@ class CatGenieEntity(CoordinatorEntity[CatGenieUpdateCoordinator]):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_is_on = self.coordinator.data[self.idx]["state"]
+        self._attr_is_on = self.coordinator.data[self._attr_unique_id]["state"]
         self.async_write_ha_state()

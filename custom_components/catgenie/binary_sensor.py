@@ -54,8 +54,9 @@ class CatGenieBinarySensor(CatGenieEntity, BinarySensorEntity):
         """Initialize the binary_sensor class."""
         super().__init__(coordinator)
         self.entity_description = entity_description
+        self._attr_unique_id = coordinator.config_entry.entry_id
 
     @property
     def is_on(self) -> bool:
         """Return true if the binary_sensor is on."""
-        return self.coordinator.data.get("state", 0) > 0
+        return self.coordinator.data[self._attr_unique_id].get("state", 0) > 0

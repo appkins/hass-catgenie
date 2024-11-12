@@ -40,5 +40,4 @@ class CatGenieData:
     client: CatGenieApiClient
     coordinator: CatGenieUpdateCoordinator
     integration: Integration
-
-    devices: list[CatGenieDevice] = field(default_factory=list)
+    devices: dict[str, CatGenieDevice] = field(default_factory=dict[str, CatGenieDevice])

@@ -16,6 +16,7 @@ from homeassistant.loader import async_get_loaded_integration
 from .api import CatGenieApiClient
 from .coordinator import CatGenieUpdateCoordinator
 from .data import CatGenieData
+from .entity import CatGenieEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -33,6 +34,7 @@ PLATFORMS: list[Platform] = [
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: CatGenieConfigEntry,
+    async_add_entities,
 ) -> bool:
     """Set up this integration using UI."""
     coordinator = CatGenieUpdateCoordinator(
@@ -49,6 +51,10 @@ async def async_setup_entry(
 
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
     await coordinator.async_config_entry_first_refresh()
+    
+    # async_add_entities(
+    #     CatGenieEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
+    # )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
