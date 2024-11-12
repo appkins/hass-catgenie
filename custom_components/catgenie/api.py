@@ -128,12 +128,13 @@ class CatGenieApiClient:
     ) -> Any:
         """Get information from the API."""
         default_headers = {
-            "client_id": self._client_id,
             "authorization": f"Bearer {self._access_token}",
             "user-agent": "CatGenie/493 CFNetwork/1559 Darwin/24.0.0",
             "connection": "keep-alive",
             "accept": "application/json, text/plain, */*",  
             "host": "iot.petnovations.com",
+            "accept-encoding": "gzip, deflate, br",
+            "accept-language": "en-US,en;q=0.9",
         }
 
         full_url = self._base_url + url
