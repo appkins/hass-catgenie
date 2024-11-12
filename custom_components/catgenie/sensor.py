@@ -8,17 +8,18 @@ from homeassistant.components.sensor import SensorEntity, SensorEntityDescriptio
 
 from .entity import CatGenieEntity
 
-if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
+from .data import CatGenieData
 
-    from .coordinator import CatGenieUpdateCoordinator
-    from .data import CatGenieConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from .coordinator import CatGenieUpdateCoordinator
 
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
-        key="integration_blueprint",
-        name="Integration Sensor",
+        key="catgenie",
+        name="Cat Genie Sensor",
         icon="mdi:format-quote-close",
     ),
 )
@@ -26,7 +27,7 @@ ENTITY_DESCRIPTIONS = (
 
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
-    entry: CatGenieConfigEntry,
+    entry: ConfigEntry[CatGenieData],
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
