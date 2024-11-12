@@ -1,0 +1,14 @@
+{
+  "domain": "catgenie",
+  "name": "Cat Genie integration",
+  "codeowners": [
+    "@appkins", "@appkins"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/appkins/hass-catgenie/",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/appkins/hass-catgenie/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}
