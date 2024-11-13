@@ -7,7 +7,7 @@
 A Home Assistant custom Integration for local handling of Tuya-based devices.
 
 This custom integration updates device status via pushing updates instead of polling, so status updates are fast (even when manually operated).
-The integration also supports the Tuya IoT Cloud APIs, for the retrieval of info and of the local_keys of the devices. 
+The integration also supports the Tuya IoT Cloud APIs, for the retrieval of info and of the local_keys of the devices.
 
 
 **NOTE: The Cloud API account configuration is not mandatory (LocalTuya can work also without it) but is strongly suggested for easy retrieval (and auto-update after re-pairing a device) of local_keys. Cloud API calls are performed only at startup, and when a local_key update is needed.**
@@ -64,7 +64,7 @@ The place to find the Client ID and Secret is described in this link (in the ["G
 
 ![project_date](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/6-project_date.png)
 
-After pressing the Submit button, the first setup is complete and the Integration will be added. 
+After pressing the Submit button, the first setup is complete and the Integration will be added.
 
 > **Note: it is not mandatory to input the Cloud API credentials: you can choose to tick the "Do not configure a Cloud API account" button, and the Integration will be added anyway.**
 

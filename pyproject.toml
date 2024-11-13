@@ -1,22 +1,62 @@
-[tool.black]
-target-version = ["py311"]
-include = 'custom_components/catgenie/.*\.py'
+[build-system]
+requires = ["setuptools~=60.5", "wheel~=0.37.1"]
+build-backend = "setuptools.build_meta"
 
-# pylint config stolen from Home Assistant
+[tool.black]
+target-version = ["py39", "py310"]
+exclude = 'generated'
+
+[tool.isort]
+# https://github.com/PyCQA/isort/wiki/isort-Settings
+profile = "black"
+# will group `import x` and `from x import` of the same module.
+force_sort_within_sections = true
+known_first_party = [
+    "homeassistant",
+    "tests",
+]
+forced_separate = [
+    "tests",
+]
+combine_as_imports = true
+
+[tool.pylint.MASTER]
+py-version = "3.9"
+ignore = [
+    "tests",
+]
 # Use a conservative default here; 2 should speed up most setups and not hurt
 # any too bad. Override on command line as appropriate.
-# Disabled for now: https://github.com/PyCQA/pylint/issues/3584
-#jobs = 2
+jobs = 2
+init-hook = """\
+    from pathlib import Path; \
+    import sys; \
+
+    from pylint.config import find_default_config_files; \
+
+    sys.path.append( \
+        str(Path(next(find_default_config_files())).parent.joinpath('pylint/plugins'))
+    ) \
+    """
 load-plugins = [
+    "pylint.extensions.code_style",
+    "pylint.extensions.typing",
     "pylint_strict_informational",
+    "hass_constructor",
+    "hass_enforce_type_hints",
+    "hass_imports",
+    "hass_logger",
 ]
 persistent = false
-extension-pkg-whitelist = [
+extension-pkg-allow-list = [
+    "av.audio.stream",
+    "av.stream",
     "ciso8601",
     "cv2",
 ]
 
 [tool.pylint.BASIC]
+class-const-naming-style = "any"
 good-names = [
     "_",
     "ev",
@@ -28,7 +68,7 @@ good-names = [
     "k",
     "Run",
     "T",
-    "hs",
+    "ip",
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
@@ -45,6 +85,11 @@ good-names = [
 # inconsistent-return-statements - doesn't handle raise
 # too-many-ancestors - it's too strict.
 # wrong-import-order - isort guards this
+# consider-using-f-string - str.format sometimes more readable
+# ---
+# Enable once current issues are fixed:
+# consider-using-namedtuple-or-dataclass (Pylint CodeStyle extension)
+# consider-using-assignment-expr (Pylint CodeStyle extension)
 disable = [
     "format",
     "abstract-class-little-used",
@@ -67,16 +112,45 @@ disable = [
     "too-many-boolean-expressions",
     "unused-argument",
     "wrong-import-order",
+    "consider-using-f-string",
+    "consider-using-namedtuple-or-dataclass",
+    "consider-using-assignment-expr",
 ]
 enable = [
+    #"useless-suppression",  # temporarily every now and then to clean them up
     "use-symbolic-message-instead",
 ]
 
 [tool.pylint.REPORTS]
 score = false
 
+[tool.pylint.TYPECHECK]
+ignored-classes = [
+    "_CountingAttr",  # for attrs
+]
+mixin-class-rgx = ".*[Mm]ix[Ii]n"
+
 [tool.pylint.FORMAT]
 expected-line-ending-format = "LF"
 
-[tool.pylint.MISCELLANEOUS]
-notes = "XXX"
+[tool.pylint.EXCEPTIONS]
+overgeneral-exceptions = [
+    "BaseException",
+    "Exception",
+    "HomeAssistantError",
+]
+
+[tool.pylint.TYPING]
+runtime-typing = false
+
+[tool.pylint.CODE_STYLE]
+max-line-length-suggestions = 72
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+norecursedirs = [
+    ".git",
+    "testing_config",
+]

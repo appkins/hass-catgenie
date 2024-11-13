@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import socket
+from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp
@@ -45,99 +45,104 @@ class CatGenieApiClient:
         session: aiohttp.ClientSession,
     ) -> None:
         """Sample API Client."""
-        self._host = "iot.petnovations.com"
-        self._base_url = f"https://{self._host}"
-        session._base_url = self._base_url
-        session.headers.update({
-            "host": self._host,
-            "user-agent": "CatGenie/493 CFNetwork/1559 Darwin/24.0.0",
-            "connection": "keep-alive",
-            "accept": "application/json, text/plain, */*",
-            "accept-encoding": "gzip, deflate, br",
-            "accept-language": "en-US,en;q=0.9",
-        })
         self._refresh_token = refresh_token
         self._access_token = None
         self._session = session
-        # self.device_list = {}
+        self._token_expiration = datetime.now(timezone.utc)
 
-    async def async_get_data(self) -> Any:
-        """Get data from the API."""
-        return await self._api_wrapper(
-            method="get",
-            url="/device/device",
-        )
-        
     async def async_get_first_device(self) -> Any:
         """Get data from the API."""
-        resp = await self._api_wrapper("GET", url="/device/device")
-        return resp["thingList"][0]
-    
-    async def async_get_devices(self) -> dict:
-        """Obtain the list of devices associated to a user."""
-        resp = await self._api_wrapper("GET", url="/device/device")
+        resp = await self.async_get_devices()
+        return resp[0]
 
-        return {dev["manufacturerId"]: dev for dev in resp["thingList"]}
-        # _LOGGER.debug("DEV_LIST: %s", self.device_list)
-
-        # return self.device_list
-    
-    async def async_get_device_status(self, id) -> Any:
+    async def async_get_devices(self) -> list:
         """Obtain the list of devices associated to a user."""
-        return await self._api_wrapper(
-            method="GET",
-            url=f"/device/management/{id}/operation/status"
+        resp = await self._api_wrapper(
+            aiohttp.hdrs.METH_GET,
+            url="/device/device",
         )
-        
-    async def async_device_operation(self, id, state: int = 1) -> Any:
+        return resp["thingList"]
+
+    async def async_get_device_status(self, device_id) -> Any:
         """Obtain the list of devices associated to a user."""
-        data = {"state": state}
-        data_str = json.dumps(data)
-        data_len = len(data_str)
         return await self._api_wrapper(
-            method="POST",
-            url=f"/device/management/{id}/operation",
+            method=aiohttp.hdrs.METH_GET,
+            url=f"/device/management/{device_id}/operation/status",
+        )
+
+    async def async_device_operation(self, device_id, state: int = 1) -> Any:
+        """Obtain the list of devices associated to a user."""
+        return await self._api_wrapper(
+            method=aiohttp.hdrs.METH_POST,
+            url=f"/device/management/{device_id}/operation",
             data={"state": state},
-            headers={"content-type": "application/json", "content-length": data_len},
         )
-    
-    async def async_get_access_token(self) -> Any:
-        """Obtain a valid access token."""
 
-        full_url = self._base_url + "/facade/v1/mobile-user/refreshToken"
+    def _is_token_expired(self) -> bool:
+        """Check if the token is expired."""
+        if self._access_token is None:
+            return True
+        return self._token_expiration >= datetime.now(timezone.utc)
+
+    @property
+    def headers(self) -> dict:
+        """Return the access token."""
+        if self._access_token is not None:
+            return { aiohttp.hdrs.AUTHORIZATION: f"Bearer {self._access_token}"}
+        return {}
+
+    async def async_refresh_token(self) -> None:
+        """Obtain a valid access token."""
+        if self._access_token is not None:
+            self._access_token = None
 
         try:
             async with async_timeout.timeout(10):
-                response = await self._session.request(
-                    method="POST",
-                    url=full_url,
-                    headers={
-                        "host": self._host,
-                        # "content-type": "application/json",
-                        "connection": "keep-alive",
-                        "accept": "application/json, text/plain, */*",
-                        "user-agent": "CatGenie/493 CFNetwork/1562 Darwin/24.0.0",
-                        # "content-length": "464",
-                        "accept-language": "en-US,en;q=0.9",
-                        "accept-encoding": "gzip, deflate, br",
-                    },
-                    json={
-                        "refreshToken": self._refresh_token,
-                    },
+                response = await self._session.post(
+                    url="/facade/v1/mobile-user/refreshToken",
+                    json={"refreshToken": self._refresh_token},
+                    headers=self.headers,
                 )
                 _verify_response_or_raise(response)
-                if not response.ok:
-                    return "Request failed, status " + str(response.status)
-                
-                r_json =  await response.json()
-                # if not r_json["success"]:
-                #     return f"Error {r_json['code']}: {r_json['msg']}"
-                
-                # self._access_token = r_json["result"]["token"]
-                self._access_token = r_json["token"]
-                return self._access_token
-        except aiohttp.ClientError as exception:
-            return f"Request failed, status ConnectionError: {exception}"
+
+                data = await response.json()
+
+                expiration = data["expiration"]
+                access_token = data["token"]
+
+                self._access_token = access_token
+
+                self._token_expiration = datetime.fromtimestamp(
+                    float(int(expiration) / 1000),
+                    timezone.utc,
+                )
+        except Exception as exception:  # pylint: disable=broad-except
+            msg = f"Error refreshing token - {exception}"
+            raise CatGenieApiClientError(
+                msg,
+            ) from exception
+
+    async def _api_wrapper_inner(
+        self,
+        method: str,
+        url: str,
+        data: dict | None = None,
+        headers: dict | None = None,
+    ) -> Any:
+        """Get information from the API."""
+        real_headers = self.headers
+        if headers is not None:
+            real_headers.update(headers)
+
+        async with async_timeout.timeout(10):
+            response = await self._session.request(
+                method=method,
+                url=url,
+                headers=real_headers,
+                json=data,
+            )
+            _verify_response_or_raise(response)
+            return await response.json()
 
     async def _api_wrapper(
         self,
@@ -147,38 +152,30 @@ class CatGenieApiClient:
         headers: dict | None = None,
     ) -> Any:
         """Get information from the API."""
-        
-        access_token = self._access_token
-        
-        if access_token is None:
-            access_token = await self.async_get_access_token()
-        
-        default_headers = {
-            "authorization": f"Bearer {access_token}",
-            "user-agent": "CatGenie/493 CFNetwork/1559 Darwin/24.0.0",
-            "connection": "keep-alive",
-            "accept": "application/json, text/plain, */*",  
-            "host": self._host,
-            "accept-encoding": "gzip, deflate, br",
-            "accept-language": "en-US,en;q=0.9",
-        }
-        
-        if headers is None:
-            headers = {}
-
-        full_url = self._base_url + url
+        if self._is_token_expired():
+            await self.async_refresh_token()
 
         try:
-            async with async_timeout.timeout(10):
-                response = await self._session.request(
+            return await self._api_wrapper_inner(
+                method=method,
+                url=url,
+                data=data,
+                headers=headers,
+            )
+        except CatGenieApiClientAuthenticationError:
+            try:
+                await self.async_refresh_token()
+                return await self._api_wrapper_inner(
                     method=method,
-                    url=full_url,
-                    headers=dict(default_headers, **headers),
-                    json=data,
+                    url=url,
+                    data=data,
+                    headers=headers,
                 )
-                _verify_response_or_raise(response)
-                return await response.json()
-
+            except Exception as exception:  # pylint: disable=broad-except
+                msg = f"Something really wrong happened! - {exception}"
+                raise CatGenieApiClientError(
+                    msg,
+                ) from exception
         except TimeoutError as exception:
             msg = f"Timeout error fetching information - {exception}"
             raise CatGenieApiClientCommunicationError(

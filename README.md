@@ -3,7 +3,7 @@
 A Home Assistant custom Integration for local handling of Tuya-based devices.
 
 This custom integration updates device status via pushing updates instead of polling, so status updates are fast (even when manually operated).
-The integration also supports the Tuya IoT Cloud APIs, for the retrieval of info and of the local_keys of the devices. 
+The integration also supports the Tuya IoT Cloud APIs, for the retrieval of info and of the local_keys of the devices.
 
 
 **NOTE: The Cloud API account configuration is not mandatory (LocalTuya can work also without it) but is strongly suggested for easy retrieval (and auto-update after re-pairing a device) of local_keys. Cloud API calls are performed only at startup, and when a local_key update is needed.**
@@ -60,7 +60,7 @@ The place to find the Client ID and Secret is described in this link (in the ["G
 
 ![project_date](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/6-project_date.png)
 
-After pressing the Submit button, the first setup is complete and the Integration will be added. 
+After pressing the Submit button, the first setup is complete and the Integration will be added.
 
 > **Note: it is not mandatory to input the Cloud API credentials: you can choose to tick the "Do not configure a Cloud API account" button, and the Integration will be added anyway.**
 
@@ -92,7 +92,7 @@ If you have selected one entry, you only need to input the device's Friendly Nam
 
 Setting the scan interval is optional, it is only needed if energy/power values are not updating frequently enough by default. Values less than 10 seconds may cause stability issues.
 
-Setting the 'Manual DPS To Add' is optional, it is only needed if the device doesn't advertise the DPS correctly until the entity has been properly initiailised. This setting can often be avoided by first connecting/initialising the device with the Tuya App, then closing the app and then adding the device in the integration. **Note: Any DPS added using this option will have a -1 value during setup.** 
+Setting the 'Manual DPS To Add' is optional, it is only needed if the device doesn't advertise the DPS correctly until the entity has been properly initiailised. This setting can often be avoided by first connecting/initialising the device with the Tuya App, then closing the app and then adding the device in the integration. **Note: Any DPS added using this option will have a -1 value during setup.**
 
 Setting the 'DPIDs to send in RESET command' is optional. It is used when a device doesn't respond to any Tuya commands after a power cycle, but can be connected to (zombie state). This scenario mostly occurs when the device is blocked from accessing the internet. The DPids will vary between devices, but typically "18,19,20" is used. If the wrong entries are added here, then the device may not come out of the zombie state. Typically only sensor DPIDs entered here.
 
@@ -107,7 +107,7 @@ After you have defined all the needed entities, leave the "Do not add more entit
 ![entity_type](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/3-entity_type.png)
 
 For each entity, the associated DP has to be selected. All the options requiring to select a DP will provide a drop-down menu showing
-all the available DPs found on the device (with their current status!!) for easy identification. 
+all the available DPs found on the device (with their current status!!) for easy identification.
 
 **Note: If your device requires an LocalTuya to send an initialisation value to the entity for it to work, this can be configured (in supported entities) through the 'Passive entity' option. Optionally you can specify the initialisation value to be sent**
 
