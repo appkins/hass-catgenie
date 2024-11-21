@@ -88,7 +88,7 @@ class CatGenieApiClient:
     def headers(self) -> dict:
         """Return the access token."""
         if self._access_token is not None:
-            return { aiohttp.hdrs.AUTHORIZATION: f"Bearer {self._access_token}"}
+            return {aiohttp.hdrs.AUTHORIZATION: f"Bearer {self._access_token}"}
         return {}
 
     async def async_refresh_token(self) -> None:

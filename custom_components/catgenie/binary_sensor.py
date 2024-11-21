@@ -14,7 +14,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, LOGGER
-from .coordinator import CatGenieUpdateCoordinator
+from .coordinator import CatGenieCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -58,21 +58,21 @@ async def async_setup_entry(
 
 
 class CatGenieBinarySensor(
-    CoordinatorEntity[CatGenieUpdateCoordinator],
+    CoordinatorEntity[CatGenieCoordinator],
     BinarySensorEntity,
 ):
     """integration_blueprint binary_sensor class."""
 
     def __init__(
         self,
-        coordinator: CatGenieUpdateCoordinator,
+        coordinator: CatGenieCoordinator,
         entity_description: BinarySensorEntityDescription,
     ) -> None:
         """Initialize the binary_sensor class."""
         super().__init__(coordinator)
         self.coordinator = coordinator
         self.entity_description = entity_description
-        self._attr_unique_id = f"{coordinator.device.get('macAddress')}_{entity_description.key}_{entity_description.device_class}_sensor"
+        self._attr_unique_id = f"{coordinator.data.mac_address}_{entity_description.key}_{entity_description.device_class}_sensor"
         self._attr_is_on = False
 
     @property
@@ -80,36 +80,37 @@ class CatGenieBinarySensor(
         """Return true if the binary_sensor is on."""
         match self.entity_description.entity_category:
             case BinarySensorDeviceClass.CONNECTIVITY:
-                status = self.coordinator.device.get("reportedStatus", "")
-                return status == "connected"
+                return self.coordinator.data.reported_status == "connected"
             case BinarySensorDeviceClass.PROBLEM:
-                return self.coordinator.data.error != ""
+                return self.coordinator.data.operation_status.error != ""
             case _:
-                return self.coordinator.data.state > 0
+                return self.coordinator.data.operation_status.state > 0
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         match self.entity_description.entity_category:
             case BinarySensorDeviceClass.CONNECTIVITY:
-                status = self.coordinator.device.get("reportedStatus", "")
-                self._attr_is_on = status == "connected"
+                self._attr_is_on = self.coordinator.data.reported_status == "connected"
             case BinarySensorDeviceClass.PROBLEM:
-                self._attr_is_on = self.coordinator.data.error != ""
+                self._attr_is_on = self.coordinator.data.operation_status.error != ""
             case _:
-                self._attr_is_on = self.coordinator.data.state > 0
+                self._attr_is_on = self.coordinator.data.operation_status.state > 0
         self.async_write_ha_state()
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
+        name = self.coordinator.data.name
+        if not name:
+            name = f"Litter Box {self.coordinator.data.manufacturer_id}"
         return DeviceInfo(
             identifiers={
-                (DOMAIN, self.coordinator.device.get("macAddress")),
+                (DOMAIN, self.coordinator.data.mac_address),
             },
-            name=self.coordinator.device.get("name"),
+            name=self.coordinator.data.name,
             manufacturer="PetNovations Ltd.",
             model="VXHCATGENIE",
-            model_id=self.coordinator.device.get("manufacturerId"),
-            sw_version=self.coordinator.device.get("fwVersion"),
+            model_id=self.coordinator.data.manufacturer_id,
+            sw_version=self.coordinator.data.fw_version,
         )

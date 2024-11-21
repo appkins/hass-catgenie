@@ -14,7 +14,7 @@ from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import CatGenieApiClient
 from .const import DOMAIN, HOST
-from .coordinator import CatGenieUpdateCoordinator
+from .coordinator import CatGenieCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 PLATFORMS: list[Platform] = [
     # Platform.SENSOR,
     Platform.BINARY_SENSOR,
-    # Platform.SWITCH,
+    Platform.SWITCH,
 ]
 
 
@@ -36,7 +36,7 @@ async def async_setup_entry(
     entry: ConfigEntry[CatGenieDeviceStatusData],
 ) -> bool:
     """Set up this integration using UI."""
-    coordinator = CatGenieUpdateCoordinator(
+    coordinator = CatGenieCoordinator(
         hass=hass,
         client=CatGenieApiClient(
             refresh_token=entry.data[CONF_TOKEN],

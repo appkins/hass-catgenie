@@ -1,12 +1,12 @@
 {
-    "name": "sebr/bhyve-home-assistant",
+    "name": "appkins/hass-catgenie",
     "image": "mcr.microsoft.com/vscode/devcontainers/python:3.12",
     "postCreateCommand": "scripts/setup-devcontainer",
     "forwardPorts": [
         8123
     ],
     "remoteEnv": {
-      "TZ": "Australia/Sydney"
+      "TZ": "America/Chicago"
     },
     "portsAttributes": {
         "8123": {
