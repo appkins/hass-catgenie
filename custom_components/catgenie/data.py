@@ -82,14 +82,14 @@ class OperationStatus:
 class UpdateGroup:
     """Information about the update group."""
 
-    id: str = field(default_factory=str)
+    group_id: str = field(default_factory=str)
     name: str = field(default_factory=str)
 
     @staticmethod
     def from_dict(obj: Any) -> UpdateGroup:
         """Parse data from API."""
         return UpdateGroup(
-            id=obj.get("id", ""),
+            group_id=obj.get("id", ""),
             name=obj.get("name", ""),
         )
 
@@ -103,7 +103,7 @@ class DeviceData:
     parent_id: str | None = None
     hw_revision: str | None = None
     fw_version: str = field(default_factory=str)
-    type: int = field(default_factory=int)
+    device_type: int = field(default_factory=int)
     status: int = field(default_factory=int)
     reported_status: str = field(default_factory=str)
     creation_time: str = field(default_factory=str)
@@ -150,7 +150,7 @@ class DeviceData:
             parent_id=obj.get("parentId"),
             hw_revision=obj.get("hwRevision"),
             fw_version=obj.get("fwVersion", ""),
-            type=obj.get("type", 0),
+            device_type=obj.get("type", 0),
             status=obj.get("status", 0),
             reported_status=obj.get("reportedStatus", ""),
             creation_time=obj.get("creationTime", ""),

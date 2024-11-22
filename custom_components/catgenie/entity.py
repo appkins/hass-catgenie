@@ -31,15 +31,29 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
     ) -> None:
         """Initialize the entity."""
         super().__init__(coordinator)
-        self._attr_unique_id = coordinator.data.mac_address
+
+        suffix = ""
+        if self.device_class is not None:
+            suffix = f"_{self.device_class}"
+
+        self._attr_unique_id = (
+            f"{DOMAIN}_{coordinator.data.mac_address}{suffix}"
+        )
+
+        name = coordinator.data.name
+        if not name:
+            name = f"Litter Box {coordinator.data.manufacturer_id}"
+
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, coordinator.data.mac_address)},
-            name=coordinator.data.name,
+            # default_name="Litter Box",
+            name=name,
             manufacturer="PetNovations Ltd.",
-            model=coordinator.data.manufacturer_id,
+            model="VXHCATGENIE",
+            model_id=coordinator.data.manufacturer_id,
             sw_version=coordinator.data.fw_version,
         )
 
     async def device_operation(self, device_id, op: DeviceOperation) -> Any:
         """Obtain the list of devices associated to a user."""
-        return self.coordinator.client.async_device_operation(device_id, op)
+        return await self.coordinator.client.async_device_operation(device_id, op.value)

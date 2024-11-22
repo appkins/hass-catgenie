@@ -34,19 +34,23 @@ class CatGenieSwitch(CatGenieEntity, SwitchEntity):
     """Representation of a SwitchBot switch."""
 
     _attr_device_class = SwitchDeviceClass.SWITCH
-    _attr_name = None
 
     async def async_turn_on(self, **_: Any) -> None:
         """Turn the device on."""
-        await self.send_api_command(DeviceOperation.ON)
+        await self.device_operation(self._device_id, DeviceOperation.ON)
         self._attr_is_on = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **_: Any) -> None:
         """Turn the device off."""
-        await self.device_operation(DeviceOperation.OFF)
+        await self.device_operation(self._device_id, DeviceOperation.OFF)
         self._attr_is_on = False
         self.async_write_ha_state()
+
+    @property
+    def _device_id(self) -> str:
+        """Return the device ID."""
+        return self.coordinator.data.manufacturer_id
 
     @callback
     def _handle_coordinator_update(self) -> None:
