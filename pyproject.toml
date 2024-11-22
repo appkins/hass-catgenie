@@ -4,6 +4,7 @@ version = "0.13.1"
 description = ""
 authors = ["Appkins <appkins@appkins.io>"]
 license = "MIT"
+packages = [{include = "catgenie", from="custom_components"}]
 
 [tool.poetry.dependencies]
 async_timeout = "^4.0.0"
