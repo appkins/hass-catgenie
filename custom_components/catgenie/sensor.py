@@ -34,6 +34,16 @@ async def async_setup_entry(
 class CatGenieSaniSolutionSensor(CatGenieEntity, SensorEntity):
     """Representation of a CatGenie Cloud sensor entity."""
 
+    @property
+    def suffix(self) -> str:
+        """Return the suffix of the entity."""
+        return "Solution"
+
+    @property
+    def name(self) -> str:
+        """Return true if the switch is on."""
+        return f"{self.device_name} Solution"
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -47,6 +57,16 @@ class CatGeniePresenceSensor(CatGenieEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.ENUM # type: ignore reportAssignmentType
     _attr_unit_of_measurement = PERCENTAGE # type: ignore reportAssignmentType
+
+    @property
+    def suffix(self) -> str:
+        """Return the suffix of the entity."""
+        return "Presence"
+
+    @property
+    def name(self) -> str:
+        """Return true if the switch is on."""
+        return f"{self.device_name} Presence"
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import voluptuous as vol
 from homeassistant import config_entries, data_entry_flow
 from homeassistant.const import CONF_NAME, CONF_TOKEN
@@ -22,9 +24,9 @@ class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(
+    async def async_step_user( # type: ignore reportInconsistentMethodOverride
         self,
-        user_input: dict | None = None,
+        user_input: dict[str, Any] | None = None,
     ) -> data_entry_flow.FlowResult:
         """Handle a flow initialized by the user."""
         _errors = {}
@@ -46,7 +48,7 @@ class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=user_input[CONF_NAME],
                     data=user_input,
-                )
+                ) # type: ignore reportGeneralType
 
         return self.async_show_form(
             step_id="user",
@@ -67,8 +69,8 @@ class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                 },
             ),
-            errors=_errors,
-        )
+            errors=_errors, # type: ignore reportGeneralTypeq
+        ) # type: ignore reportGeneralType
 
     async def _test_credentials(self, refresh_token: str) -> None:
         """Validate credentials."""

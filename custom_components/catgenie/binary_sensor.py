@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from catgenie.coordinator import CatGenieCoordinator
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -12,13 +11,14 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import HomeAssistant, callback
 
-from custom_components.catgenie.entity import CatGenieEntity
-
 from .const import DOMAIN, LOGGER
+from .entity import CatGenieEntity
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+    from .coordinator import CatGenieCoordinator
 
 
 async def async_setup_entry(
@@ -77,6 +77,11 @@ class CatGenieConnectivitySensor(
         self._attr_is_on = self.coordinator.data.reported_status == "connected"
         self.async_write_ha_state()
 
+    @property
+    def name(self) -> str:
+        """Return true if the switch is on."""
+        return f"{self.device_name} {self._attr_device_class.name.title()}"
+
 
 class CatGenieRunningSensor(
     CatGenieBinarySensor,
@@ -92,6 +97,11 @@ class CatGenieRunningSensor(
         self._attr_is_on = self.coordinator.data.operation_status.state > 0
         self.async_write_ha_state()
 
+    @property
+    def name(self) -> str:
+        """Return true if the switch is on."""
+        return f"{self.device_name} {self._attr_device_class.name.title()}"
+
 
 class CatGenieProblemSensor(
     CatGenieBinarySensor,
@@ -100,6 +110,11 @@ class CatGenieProblemSensor(
     """integration_blueprint binary_sensor class."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
+
+    @property
+    def name(self) -> str:
+        """Return true if the switch is on."""
+        return f"{self.device_name} {self._attr_device_class.name.title()}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
