@@ -52,8 +52,8 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
             model="VXHCATGENIE",
             model_id=coordinator.data.manufacturer_id,
             sw_version=coordinator.data.fw_version,
-        )
+        ) # type: ignore
 
-    async def device_operation(self, device_id, op: DeviceOperation) -> Any:
+    async def device_operation(self, device_id: str, op: DeviceOperation) -> Any:
         """Obtain the list of devices associated to a user."""
         return await self.coordinator.client.async_device_operation(device_id, op.value)

@@ -19,6 +19,12 @@ from .data import DeviceData
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
+class UnknownError(Exception):
+    """Raised when an unknown error occurs during update."""
+
+    def __init__(self, *args: object) -> None:
+        """Initialize the error."""
+        super().__init__(f"Unknown error: {args}")
 
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
 class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
@@ -41,7 +47,7 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
 
     async def _async_update_data(self) -> DeviceData:
         """Update data via library."""
-        if self.client._access_token is None:
+        if not self.client.has_access_token():
             await self.client.async_refresh_token()
         try:
             result = await self.client.async_get_first_device()
@@ -51,4 +57,4 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
         except CatGenieApiClientError as exception:
             raise UpdateFailed(exception) from exception
         except Exception as exception:
-            raise f"Unknown error: {exception}" from exception
+            raise UnknownError from exception

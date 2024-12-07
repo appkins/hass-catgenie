@@ -55,7 +55,7 @@ class CatGenieApiClient:
         resp = await self.async_get_devices()
         return resp[0]
 
-    async def async_get_devices(self) -> list:
+    async def async_get_devices(self) -> list[dict[str, Any]]:
         """Obtain the list of devices associated to a user."""
         resp = await self._api_wrapper(
             aiohttp.hdrs.METH_GET,
@@ -63,14 +63,14 @@ class CatGenieApiClient:
         )
         return resp["thingList"]
 
-    async def async_get_device_status(self, device_id) -> Any:
+    async def async_get_device_status(self, device_id: str) -> Any:
         """Obtain the list of devices associated to a user."""
         return await self._api_wrapper(
             method=aiohttp.hdrs.METH_GET,
             url=f"/device/management/{device_id}/operation/status",
         )
 
-    async def async_device_operation(self, device_id, state: int = 1) -> Any:
+    async def async_device_operation(self, device_id: str, state: int = 1) -> Any:
         """Obtain the list of devices associated to a user."""
         return await self._api_wrapper(
             method=aiohttp.hdrs.METH_POST,
@@ -84,8 +84,12 @@ class CatGenieApiClient:
             return True
         return self._token_expiration >= datetime.now(timezone.utc)
 
+    def has_access_token(self) -> bool:
+        """Check if the token is expired."""
+        return self._access_token is not None
+
     @property
-    def headers(self) -> dict:
+    def headers(self) -> dict[str, str]:
         """Return the access token."""
         if self._access_token is not None:
             return {aiohttp.hdrs.AUTHORIZATION: f"Bearer {self._access_token}"}
@@ -126,8 +130,8 @@ class CatGenieApiClient:
         self,
         method: str,
         url: str,
-        data: dict | None = None,
-        headers: dict | None = None,
+        data: dict[Any,Any] | None = None,
+        headers: dict[str,str] | None = None,
     ) -> Any:
         """Get information from the API."""
         real_headers = self.headers
@@ -148,8 +152,8 @@ class CatGenieApiClient:
         self,
         method: str,
         url: str,
-        data: dict | None = None,
-        headers: dict | None = None,
+        data: dict[Any,Any] | None = None,
+        headers: dict[str,str] | None = None,
     ) -> Any:
         """Get information from the API."""
         if self._is_token_expired():
