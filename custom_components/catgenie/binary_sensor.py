@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from catgenie.coordinator import CatGenieCoordinator
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -41,22 +42,25 @@ async def async_setup_entry(
 class CatGenieBinarySensor(CatGenieEntity, BinarySensorEntity):
     """integration_blueprint binary_sensor class."""
 
-    @property
-    def is_on(self) -> bool:
-        """Return true if the binary_sensor is on."""
-        return self._attr_is_on
-
-    @property
-    def entity_description(self) -> BinarySensorEntityDescription:
-        """Return the class of this binary_sensor."""
+    def __init__(
+        self,
+        coordinator: CatGenieCoordinator,
+    ) -> None:
+        """Initialize the entity."""
+        super().__init__(coordinator)
         device_class = self._attr_device_class
         if device_class is None:
             device_class = BinarySensorDeviceClass.POWER
-        return BinarySensorEntityDescription(
+        self.entity_description = BinarySensorEntityDescription(
             key=DOMAIN,
             name=f"Litter Box {device_class.name.title()}",
             device_class=device_class,
         )
+
+    def is_on(self) -> (bool | None):
+        """Return true if the binary_sensor is on."""
+        return self._attr_is_on
+
 
 
 class CatGenieConnectivitySensor(

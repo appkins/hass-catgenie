@@ -20,11 +20,11 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-    from .data import CatGenieDeviceStatusData
+    from .data import DeviceData
 
 
 PLATFORMS: list[Platform] = [
-    # Platform.SENSOR,
+    Platform.SENSOR,
     Platform.BINARY_SENSOR,
     Platform.SWITCH,
 ]
@@ -33,7 +33,7 @@ PLATFORMS: list[Platform] = [
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry[CatGenieDeviceStatusData],
+    entry: ConfigEntry[DeviceData],
 ) -> bool:
     """Set up this integration using UI."""
     coordinator = CatGenieCoordinator(

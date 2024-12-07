@@ -6,6 +6,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -44,7 +45,8 @@ class CatGenieSaniSolutionSensor(CatGenieEntity, SensorEntity):
 class CatGeniePresenceSensor(CatGenieEntity, SensorEntity):
     """integration_blueprint binary_sensor class."""
 
-    _attr_device_class = SensorDeviceClass.ENUM # type: ignore
+    _attr_device_class = SensorDeviceClass.ENUM # type: ignore reportAssignmentType
+    _attr_unit_of_measurement = PERCENTAGE # type: ignore reportAssignmentType
 
     @callback
     def _handle_coordinator_update(self) -> None:
