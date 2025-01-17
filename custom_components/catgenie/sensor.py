@@ -2,11 +2,9 @@
 
 
 from homeassistant.components.sensor import (
-    SensorDeviceClass,
     SensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -26,23 +24,21 @@ async def async_setup_entry(
     async_add_entities(
         {
             CatGenieSaniSolutionSensor(coordinator=coordinator),
-            CatGeniePresenceSensor(coordinator=coordinator),
         },
     )
-
 
 class CatGenieSaniSolutionSensor(CatGenieEntity, SensorEntity):
     """Representation of a CatGenie Cloud sensor entity."""
 
     @property
-    def suffix(self) -> str:
-        """Return the suffix of the entity."""
-        return "Solution"
+    def unique_id(self) -> str:
+        """Return the unique ID of the entity."""
+        return f"{self.coordinator.data.manufacturer_id}_sani_solution"
 
     @property
     def name(self) -> str:
-        """Return true if the switch is on."""
-        return f"{self.device_name} Solution"
+        """Return the name of the entity."""
+        return "Solution"
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -50,26 +46,4 @@ class CatGenieSaniSolutionSensor(CatGenieEntity, SensorEntity):
         if not self.coordinator.data:
             return
         self._attr_native_value = self.coordinator.data.remaining_sani_solution
-        self.async_write_ha_state()
-
-class CatGeniePresenceSensor(CatGenieEntity, SensorEntity):
-    """integration_blueprint binary_sensor class."""
-
-    _attr_device_class = SensorDeviceClass.ENUM # type: ignore reportAssignmentType
-    _attr_unit_of_measurement = PERCENTAGE # type: ignore reportAssignmentType
-
-    @property
-    def suffix(self) -> str:
-        """Return the suffix of the entity."""
-        return "Presence"
-
-    @property
-    def name(self) -> str:
-        """Return true if the switch is on."""
-        return f"{self.device_name} Presence"
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_state = self.coordinator.data.operation_status.sens
         self.async_write_ha_state()

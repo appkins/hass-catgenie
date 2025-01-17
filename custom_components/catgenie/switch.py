@@ -36,14 +36,24 @@ class CatGenieSwitch(CatGenieEntity, SwitchEntity):
     _attr_device_class = SwitchDeviceClass.SWITCH
 
     @property
-    def suffix(self) -> str:
-        """Return the suffix of the entity."""
-        return "Clean"
+    def unique_id(self) -> str:
+        """Return the unique ID of the entity."""
+        return f"{self.coordinator.data.manufacturer_id}_clean"
 
     @property
     def name(self) -> str:
-        """Return true if the switch is on."""
-        return f"{self._device_name} Clean"
+        """Return the name of the entity."""
+        return "Clean"
+
+    # @property
+    # def suffix(self) -> str:
+    #     """Return the suffix of the entity."""
+    #     return "Clean"
+
+    # @property
+    # def name(self) -> str:
+    #     """Return true if the switch is on."""
+    #     return f"{self._device_name} Clean"
 
     async def async_turn_on(self, **_: Any) -> None:
         """Turn the device on."""
