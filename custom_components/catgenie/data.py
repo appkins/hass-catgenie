@@ -5,7 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from dataclasses_json import LetterCase, dataclass_json
 
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class Configuration:
     """Configuration settings for the device."""
@@ -24,30 +27,10 @@ class Configuration:
     schedule: list[Any] = field(default_factory=list)
     cat_delay: int = field(default_factory=int)
     extra_dry: bool = field(default_factory=bool)
-    binary_elements: dict = field(default_factory=dict)
-
-    @staticmethod
-    def from_dict(obj: Any) -> Configuration:
-        """Parse data from API."""
-        return Configuration(
-            child_lock=obj.get("childLock", 0),
-            auto_lock=obj.get("autoLock", 0),
-            volume_level=obj.get("volumeLevel", 0),
-            mode=obj.get("mode", 0),
-            manual=obj.get("manual", 0),
-            cat_sense=obj.get("catSense", 0),
-            timezone=obj.get("timezone", ""),
-            dst_from=obj.get("dstFrom", ""),
-            dst_to=obj.get("dstTo", ""),
-            dnd_from=obj.get("dndFrom", ""),
-            dnd_to=obj.get("dndTo", ""),
-            schedule=obj.get("schedule", []),
-            cat_delay=obj.get("catDelay", 0),
-            extra_dry=obj.get("extraDry", False),
-            binary_elements=obj.get("binaryElements", {}),
-        )
+    binary_elements: dict[str, bool] = field(default_factory=dict[str, bool])
 
 
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class OperationStatus:
     """Operation status of the device."""
@@ -62,22 +45,8 @@ class OperationStatus:
     step_num: int = field(default_factory=int)
     relay_mode: int | None = None
 
-    @staticmethod
-    def from_dict(obj: Any) -> OperationStatus:
-        """Parse data from API."""
-        return OperationStatus(
-            state=obj.get("state", 0),
-            progress=obj.get("progress", 0),
-            error=obj.get("error", ""),
-            rtc=obj.get("rtc"),
-            sens=obj.get("sens"),
-            mode=obj.get("mode", 0),
-            manual=obj.get("manual", 0),
-            step_num=obj.get("stepNum", 0),
-            relay_mode=obj.get("relayMode"),
-        )
 
-
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class UpdateGroup:
     """Information about the update group."""
@@ -85,15 +54,8 @@ class UpdateGroup:
     group_id: str = field(default_factory=str)
     name: str = field(default_factory=str)
 
-    @staticmethod
-    def from_dict(obj: Any) -> UpdateGroup:
-        """Parse data from API."""
-        return UpdateGroup(
-            group_id=obj.get("id", ""),
-            name=obj.get("name", ""),
-        )
 
-
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class DeviceData:
     """Comprehensive data representation for the device."""
@@ -141,50 +103,10 @@ class DeviceData:
     temp_out_ref_from_desired: str | None = None
     online: bool = field(default_factory=bool)
 
-    @staticmethod
-    def from_dict(obj: Any) -> DeviceData:
-        """Parse data from API."""
-        return DeviceData(
-            manufacturer_id=obj.get("manufacturerId", ""),
-            name=obj.get("name"),
-            parent_id=obj.get("parentId"),
-            hw_revision=obj.get("hwRevision"),
-            fw_version=obj.get("fwVersion", ""),
-            device_type=obj.get("type", 0),
-            status=obj.get("status", 0),
-            reported_status=obj.get("reportedStatus", ""),
-            creation_time=obj.get("creationTime", ""),
-            last_updated_time=obj.get("lastUpdatedTime"),
-            custom_properties=obj.get("customProperties", []),
-            children_ids=obj.get("childrenIds", []),
-            is_online_timestamp=obj.get("isOnlineTimestamp", 0),
-            mb_last_fw_status=obj.get("mbLastFwStatus"),
-            cp_last_fw_status=obj.get("cpLastFwStatus"),
-            lg_last_fw_status=obj.get("lgLastFwStatus"),
-            pump_type_enum=obj.get("pumpTypeEnum", ""),
-            configuration=Configuration.from_dict(obj.get("configuration", {})),
-            operation_status=OperationStatus.from_dict(obj.get("operationStatus", {})),
-            mac_address=obj.get("macAddress", ""),
-            last_clean=obj.get("lastClean"),
-            total_sani_solution=obj.get("totalSaniSolution", 0),
-            used_sani_solution=obj.get("usedSaniSolution", 0),
-            remaining_sani_solution=obj.get("remainingSaniSolution", 0),
-            tag_type=obj.get("tagType", 0),
-            connection_mode=obj.get("connectionMode", ""),
-            ble_connection_id=obj.get("bleConnectionId", ""),
-            state=obj.get("state", 0),
-            selected_lang=obj.get("selectedLang"),
-            main_error_type=obj.get("mainErrorType"),
-            active_errors=obj.get("activeErrors", []),
-            update_group=UpdateGroup.from_dict(obj.get("updateGroup", {})),
-            service_level=obj.get("serviceLevel", ""),
-            activation_date_from_desired=obj.get("activationDateFromDesired"),
-            in_blacklist=obj.get("inBlacklist"),
-            country_code=obj.get("countryCode", 0),
-            scale_id=obj.get("scaleId"),
-            low_heater=obj.get("lowHeater", False),
-            fan_shutter=obj.get("fanShutter", False),
-            dome=obj.get("dome"),
-            temp_out_ref_from_desired=obj.get("tempOutRefFromDesired"),
-            online=obj.get("online", False),
-        )
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass
+class DevicesResponse:
+    """Response from the devices endpoint."""
+
+    thing_list: list[DeviceData] = field(default_factory=list[DeviceData])

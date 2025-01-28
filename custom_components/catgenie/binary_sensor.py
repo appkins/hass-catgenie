@@ -31,7 +31,7 @@ async def async_setup_entry(
 
     async_add_entities(
         {
-            CatGenieProblemSensor(coordinator=coordinator),
+            # CatGenieProblemSensor(coordinator=coordinator),
             CatGenieConnectivitySensor(coordinator=coordinator),
             CatGenieRunningSensor(coordinator=coordinator),
             CatGenieOccupancy(coordinator=coordinator),
@@ -141,7 +141,7 @@ class CatGenieProblemSensor(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_is_on = self.coordinator.data.operation_status.error != ""
+        self._attr_is_on = self.coordinator.data.operation_status.error not in ('""', "")
         self.async_write_ha_state()
 
 class CatGenieOccupancy(
@@ -168,5 +168,10 @@ class CatGenieOccupancy(
             self._attr_is_on = False
         str_sens = str(self.coordinator.data.operation_status.sens)
         if len(str_sens) > 0:
-            self._attr_is_on = True
+            if str_sens == "null":
+                self._attr_is_on = False
+            else:
+                self._attr_is_on = True
+        else:
+            self._attr_is_on = False
         self.async_write_ha_state()

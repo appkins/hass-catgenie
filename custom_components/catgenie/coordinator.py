@@ -50,8 +50,7 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
         if not self.client.has_access_token():
             await self.client.async_refresh_token()
         try:
-            result = await self.client.async_get_first_device()
-            return DeviceData.from_dict(result)
+            return await self.client.async_get_first_device()
         except CatGenieApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except CatGenieApiClientError as exception:

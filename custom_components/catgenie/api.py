@@ -8,6 +8,9 @@ from typing import Any
 
 import aiohttp
 import async_timeout
+from aiohttp.typedefs import DEFAULT_JSON_DECODER, JSONDecoder
+
+from .data import DeviceData, DevicesResponse
 
 
 class CatGenieApiClientError(Exception):
@@ -50,18 +53,18 @@ class CatGenieApiClient:
         self._session = session
         self._token_expiration = datetime.now(timezone.utc)
 
-    async def async_get_first_device(self) -> Any:
+    async def async_get_first_device(self) -> DeviceData:
         """Get data from the API."""
         resp = await self.async_get_devices()
-        return resp[0]
+        return resp.thing_list[0]
 
-    async def async_get_devices(self) -> list[dict[str, Any]]:
+    async def async_get_devices(self) -> DevicesResponse:
         """Obtain the list of devices associated to a user."""
-        resp = await self._api_wrapper(
+        return await self._api_wrapper(
             aiohttp.hdrs.METH_GET,
-            url="/device/device",
+            url="/device/device?useFleetIndexAndGetRealConnectivity=true",
+            loads=DevicesResponse.from_json,
         )
-        return resp["thingList"]
 
     async def async_get_device_status(self, device_id: str) -> Any:
         """Obtain the list of devices associated to a user."""
@@ -132,6 +135,7 @@ class CatGenieApiClient:
         url: str,
         data: dict[Any,Any] | None = None,
         headers: dict[str,str] | None = None,
+        loads: JSONDecoder = DEFAULT_JSON_DECODER,
     ) -> Any:
         """Get information from the API."""
         real_headers = self.headers
@@ -146,7 +150,7 @@ class CatGenieApiClient:
                 json=data,
             )
             _verify_response_or_raise(response)
-            return await response.json()
+            return await response.json(loads=loads)
 
     async def _api_wrapper(
         self,
@@ -154,6 +158,7 @@ class CatGenieApiClient:
         url: str,
         data: dict[Any,Any] | None = None,
         headers: dict[str,str] | None = None,
+        loads: JSONDecoder = DEFAULT_JSON_DECODER,
     ) -> Any:
         """Get information from the API."""
         if self._is_token_expired():
@@ -165,6 +170,7 @@ class CatGenieApiClient:
                 url=url,
                 data=data,
                 headers=headers,
+                loads=loads,
             )
         except CatGenieApiClientAuthenticationError:
             try:
