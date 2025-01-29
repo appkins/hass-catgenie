@@ -80,7 +80,7 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
     #     )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo: # type: ignore reportImplicitStringConcatenation
         """Return the device info."""
         return DeviceInfo(
             identifiers={

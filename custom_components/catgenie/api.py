@@ -10,7 +10,7 @@ import aiohttp
 import async_timeout
 from aiohttp.typedefs import DEFAULT_JSON_DECODER, JSONDecoder
 
-from .data import DeviceData, DevicesResponse
+from .data import DeviceData, DevicesResponse, OperationStatus
 
 
 class CatGenieApiClientError(Exception):
@@ -63,14 +63,15 @@ class CatGenieApiClient:
         return await self._api_wrapper(
             aiohttp.hdrs.METH_GET,
             url="/device/device?useFleetIndexAndGetRealConnectivity=true",
-            loads=DevicesResponse.from_json,
+            loads=DevicesResponse.from_json, # type: ignore reportUnknownMemberType
         )
 
-    async def async_get_device_status(self, device_id: str) -> Any:
+    async def async_get_device_status(self, device_id: str) -> OperationStatus:
         """Obtain the list of devices associated to a user."""
         return await self._api_wrapper(
             method=aiohttp.hdrs.METH_GET,
             url=f"/device/management/{device_id}/operation/status",
+            loads=OperationStatus.from_json, # type: ignore reportUnknownMemberType
         )
 
     async def async_device_operation(self, device_id: str, state: int = 1) -> Any:

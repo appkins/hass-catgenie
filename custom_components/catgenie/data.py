@@ -8,7 +8,7 @@ from typing import Any
 from dataclasses_json import LetterCase, dataclass_json
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
 @dataclass
 class Configuration:
     """Configuration settings for the device."""
@@ -30,7 +30,7 @@ class Configuration:
     binary_elements: dict[str, bool] = field(default_factory=dict[str, bool])
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
 @dataclass
 class OperationStatus:
     """Operation status of the device."""
@@ -46,7 +46,7 @@ class OperationStatus:
     relay_mode: int | None = None
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
 @dataclass
 class UpdateGroup:
     """Information about the update group."""
@@ -55,7 +55,7 @@ class UpdateGroup:
     name: str = field(default_factory=str)
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
 @dataclass
 class DeviceData:
     """Comprehensive data representation for the device."""
@@ -78,7 +78,7 @@ class DeviceData:
     lg_last_fw_status: str | None = None
     pump_type_enum: str = field(default_factory=str)
     configuration: Configuration = field(default_factory=Configuration)
-    operation_status: OperationStatus = field(default_factory=OperationStatus)
+    operation_status: OperationStatus | None = None
     mac_address: str = field(default_factory=str)
     last_clean: str | None = None
     total_sani_solution: int = field(default_factory=int)
@@ -104,7 +104,7 @@ class DeviceData:
     online: bool = field(default_factory=bool)
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
 @dataclass
 class DevicesResponse:
     """Response from the devices endpoint."""

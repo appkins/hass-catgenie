@@ -43,14 +43,14 @@ class CatGenieBinarySensor(CatGenieEntity, BinarySensorEntity):
     """integration_blueprint binary_sensor class."""
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the unique ID of the entity."""
         return f"{self.coordinator.data.manufacturer_id}_{self.device_class}"
 
     @property
-    def name(self) -> str:
+    def name(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the unique ID of the entity."""
-        return self.device_class.title()
+        return self.device_class.title() # type: ignore reportFunctionMemberAccess
 
     def __init__(
         self,
@@ -81,12 +81,12 @@ class CatGenieConnectivitySensor(
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
 
     @property
-    def name(self) -> str:
+    def name(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the name of the entity."""
         return "Connectivity"
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the unique ID of the entity."""
         return f"{self.coordinator.data.manufacturer_id}_connectivity"
 
@@ -105,12 +105,12 @@ class CatGenieRunningSensor(
     _attr_device_class = BinarySensorDeviceClass.RUNNING
 
     @property
-    def name(self) -> str:
+    def name(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the name of the entity."""
         return "Running"
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the unique ID of the entity."""
         return f"{self.coordinator.data.manufacturer_id}_running"
 
@@ -129,12 +129,12 @@ class CatGenieProblemSensor(
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
     @property
-    def name(self) -> str:
+    def name(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the name of the entity."""
         return "Problem"
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the unique ID of the entity."""
         return f"{self.coordinator.data.manufacturer_id}_problem"
 
@@ -152,12 +152,12 @@ class CatGenieOccupancy(
 
     _attr_device_class = BinarySensorDeviceClass.OCCUPANCY
     @property
-    def name(self) -> str:
+    def name(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the name of the entity."""
         return "Occupancy"
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> str: # type: ignore reportImplicitStringConcatenation
         """Return the unique ID of the entity."""
         return f"{self.coordinator.data.manufacturer_id}_occupancy"
 
