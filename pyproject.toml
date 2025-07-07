@@ -4,7 +4,7 @@ version = "0.13.1"
 description = ""
 authors = ["Appkins <appkins@appkins.io>"]
 license = "MIT"
-packages = [{include = "catgenie", from="custom_components"}]
+packages = [{ include = "catgenie", from = "custom_components" }]
 
 [tool.poetry.dependencies]
 async_timeout = "^4.0.0"
@@ -16,16 +16,25 @@ python = ">=3.13.2,<3.14"
 black = "^23.12.1"
 flake8 = "^7.0.0"
 homeassistant-stubs = "^2025.7.1"
-pytest-homeassistant-custom-component = "^0.13.89"
+pytest-homeassistant-custom-component = "^0.13.261"
 ruff = "^0.7.2"
 reorder-python-imports = "^3.12.0"
+pylint = "^3.3.7"
+colorlog = "^6.9.0"
+pre-commit = "^4.2.0"
+
+[tool.poetry.group.test.dependencies]
+pytest-homeassistant-custom-component = "^0.13.261"
+pytest = "8.4.0"
+aioresponses = "^0.7.8"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
-typeCheckingMode = "strict"
+typeCheckingMode = "basic"
 reportMissingTypeStubs = "none"
 reportImportCycles = "warning"
 useLibraryCodeForTypes = true

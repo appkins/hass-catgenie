@@ -6,11 +6,11 @@ from dataclasses import field
 from typing import Any
 
 from pydantic import ConfigDict
+from pydantic.alias_generators import to_camel
 from pydantic.dataclasses import dataclass
-from pydantic.utils import to_lower_camel
 
 
-@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
+@dataclass(config=ConfigDict(alias_generator=to_camel))
 class Configuration:
     """Configuration settings for the device."""
 
@@ -31,7 +31,7 @@ class Configuration:
     binary_elements: dict[str, bool] = field(default_factory=dict[str, bool])
 
 
-@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
+@dataclass(config=ConfigDict(alias_generator=to_camel))
 class OperationStatus:
     """Operation status of the device."""
 
@@ -46,7 +46,7 @@ class OperationStatus:
     relay_mode: int | None = None
 
 
-@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
+@dataclass(config=ConfigDict(alias_generator=to_camel))
 class UpdateGroup:
     """Information about the update group."""
 
@@ -54,7 +54,7 @@ class UpdateGroup:
     name: str = field(default_factory=str)
 
 
-@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
+@dataclass(config=ConfigDict(alias_generator=to_camel))
 class DeviceData:
     """Comprehensive data representation for the device."""
 
@@ -102,7 +102,7 @@ class DeviceData:
     online: bool = field(default_factory=bool)
 
 
-@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
+@dataclass(config=ConfigDict(alias_generator=to_camel))
 class DevicesResponse:
     """Response from the devices endpoint."""
 

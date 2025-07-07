@@ -1,13 +1,15 @@
 {
-  "codeowners": ["@appkins"],
-  "config_flow": true,
-  "dependencies": [],
-  "documentation": "https://github.com/appkins/hass-catgenie/",
-  "domain": "catgenie",
-  "integration_type": "device",
-  "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/appkins/hass-catgenie/issues",
-  "name": "Cat Genie",
-  "requirements": [],
-  "version": "1.0.2"
+    "codeowners": [
+        "@appkins"
+    ],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://github.com/appkins/hass-catgenie/",
+    "domain": "catgenie",
+    "integration_type": "device",
+    "iot_class": "local_polling",
+    "issue_tracker": "https://github.com/appkins/hass-catgenie/issues",
+    "name": "Cat Genie",
+    "requirements": [],
+    "version": "1.0.2"
 }

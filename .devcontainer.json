@@ -6,7 +6,7 @@
         8123
     ],
     "remoteEnv": {
-      "TZ": "America/Chicago"
+        "TZ": "America/Chicago"
     },
     "portsAttributes": {
         "8123": {
@@ -40,6 +40,7 @@
     },
     "remoteUser": "vscode",
     "features": {
-        "ghcr.io/devcontainers/features/rust:1": {}
+        "ghcr.io/devcontainers/features/rust:1": {},
+        "configureZshAsDefaultShell": true
     }
-  }
+}

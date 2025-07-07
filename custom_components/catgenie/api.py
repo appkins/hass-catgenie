@@ -61,18 +61,24 @@ class CatGenieApiClient:
 
     async def async_get_devices(self) -> DevicesResponse:
         """Obtain the list of devices associated to a user."""
-        return parse_obj_as(DevicesResponse, await self._api_wrapper(
-            aiohttp.hdrs.METH_GET,
-            url="/device/device?useFleetIndexAndGetRealConnectivity=true",
-        ))
+        return parse_obj_as(
+            DevicesResponse,
+            await self._api_wrapper(
+                aiohttp.hdrs.METH_GET,
+                url="/device/device?useFleetIndexAndGetRealConnectivity=true",
+            ),
+        )
 
     async def async_get_device_status(self, device_id: str) -> OperationStatus:
         """Obtain the list of devices associated to a user."""
-        return parse_obj_as(OperationStatus, await self._api_wrapper(
-            method=aiohttp.hdrs.METH_GET,
-            url=f"/device/management/{device_id}/operation/status",
-            loads=OperationStatus.from_json, # type: ignore reportUnknownMemberType
-        ))
+        return parse_obj_as(
+            OperationStatus,
+            await self._api_wrapper(
+                method=aiohttp.hdrs.METH_GET,
+                url=f"/device/management/{device_id}/operation/status",
+                loads=OperationStatus.from_json,  # type: ignore reportUnknownMemberType
+            ),
+        )
 
     async def async_device_operation(self, device_id: str, state: int = 1) -> Any:
         """Obtain the list of devices associated to a user."""
@@ -134,8 +140,8 @@ class CatGenieApiClient:
         self,
         method: str,
         url: str,
-        data: dict[Any,Any] | None = None,
-        headers: dict[str,str] | None = None,
+        data: dict[Any, Any] | None = None,
+        headers: dict[str, str] | None = None,
         loads: JSONDecoder = DEFAULT_JSON_DECODER,
     ) -> Any:
         """Get information from the API."""
@@ -157,8 +163,8 @@ class CatGenieApiClient:
         self,
         method: str,
         url: str,
-        data: dict[Any,Any] | None = None,
-        headers: dict[str,str] | None = None,
+        data: dict[Any, Any] | None = None,
+        headers: dict[str, str] | None = None,
         loads: JSONDecoder = DEFAULT_JSON_DECODER,
     ) -> Any:
         """Get information from the API."""

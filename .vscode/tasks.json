@@ -26,6 +26,20 @@
       "dependsOn": ["Compile English translations"]
     },
     {
+      "label": "CatGenie Component Tests",
+      "type": "shell", 
+      "command": "poetry run python test_runner.py",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Pytest",
       "type": "shell",
       "command": "${command:python.interpreterPath} -m pytest --timeout=10 tests",

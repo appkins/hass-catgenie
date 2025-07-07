@@ -5,6 +5,7 @@ from typing import Any
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from propcache.api import cached_property
 
 from .const import DOMAIN
 from .coordinator import CatGenieCoordinator
@@ -24,6 +25,7 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
 
     _attr_has_entity_name = True
     _attr_suffix: str | None = None
+    _attr_state: str | None = None
     coordinator: CatGenieCoordinator
 
     def __init__(
@@ -35,59 +37,35 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
 
         self.coordinator = coordinator
 
-        # suffix = ""
-        # if self.device_class is not None:  # type: ignore reportUnnecessaryComparison
-        #     suffix = f"_{self.device_class}"
-
-        # self._attr_unique_id = (
-        #     f"{DOMAIN}_{coordinator.data.mac_address}{suffix}"
-        # )
-        # if self._attr_unique_id is None:
-        #     self._attr_unique_id = uuid4().hex
-        #     self.async_write_ha_state()
-
         self._device_name = coordinator.data.name
         if not self._device_name:
             self._device_name = f"Litter Box {coordinator.data.manufacturer_id}"
 
-    @property
+    @cached_property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return super().available
+
+    @cached_property
     def device_name(self) -> str:
         """Return the device name."""
-        return self._device_name
+        return (
+            self._device_name or f"Litter Box {self.coordinator.data.manufacturer_id}"
+        )
 
-    @property
+    @cached_property
     def device_id(self) -> str:
         """Return the device ID."""
         return self.coordinator.data.manufacturer_id
 
-    # @property
-    # async def device(self) -> DeviceInfo:
-        # """Return the device."""
-        # return async_get(self.hass).async_get_device((DOMAIN, self.coordinator.data.mac_address))
-
-    # @property
-    # def info(self) -> DeviceInfo:
-    #     """Return the device info."""
-    #     return DeviceInfo(
-    #         identifiers={
-    #             (DOMAIN, self.coordinator.data.mac_address),
-    #         },
-    #         name=self._device_name,
-    #         manufacturer="PetNovations Ltd.",
-    #         model="VXHCATGENIE",
-    #         model_id=self.coordinator.data.manufacturer_id,
-    #         sw_version=self.coordinator.data.fw_version,
-    #     )
-
-    @property
-    def device_info(self) -> DeviceInfo: # type: ignore reportImplicitStringConcatenation
+    @cached_property
+    def device_info(self) -> DeviceInfo:  # type: ignore reportImplicitStringConcatenation
         """Return the device info."""
         return DeviceInfo(
             identifiers={
                 # Serial numbers are unique identifiers within a specific domain
                 (DOMAIN, self.coordinator.data.manufacturer_id),
             },
-            # default_name="Litter Box",
             manufacturer="PetNovations Ltd.",
             model="VXHCATGENIE",
             model_id=self.coordinator.data.manufacturer_id,

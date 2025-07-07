@@ -26,6 +26,7 @@ async def async_setup_entry(
         },
     )
 
+
 class CatGenieErrorEvent(CatGenieEntity, EventEntity):
     """Representation of a CatGenie Cloud sensor entity."""
 

@@ -27,6 +27,7 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
     Platform.SWITCH,
+    Platform.EVENT,
 ]
 
 
@@ -61,9 +62,6 @@ async def async_setup_entry(
     hass.data[DOMAIN] = {
         "coordinator": coordinator,
     }
-
-    # async_add_entities(
-    #     CatGenieEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
