@@ -9,6 +9,7 @@ from typing import Any
 import aiohttp
 import async_timeout
 from aiohttp.typedefs import DEFAULT_JSON_DECODER, JSONDecoder
+from pydantic.tools import parse_obj_as
 
 from .data import DeviceData, DevicesResponse, OperationStatus
 
@@ -60,19 +61,18 @@ class CatGenieApiClient:
 
     async def async_get_devices(self) -> DevicesResponse:
         """Obtain the list of devices associated to a user."""
-        return await self._api_wrapper(
+        return parse_obj_as(DevicesResponse, await self._api_wrapper(
             aiohttp.hdrs.METH_GET,
             url="/device/device?useFleetIndexAndGetRealConnectivity=true",
-            loads=DevicesResponse.from_json, # type: ignore reportUnknownMemberType
-        )
+        ))
 
     async def async_get_device_status(self, device_id: str) -> OperationStatus:
         """Obtain the list of devices associated to a user."""
-        return await self._api_wrapper(
+        return parse_obj_as(OperationStatus, await self._api_wrapper(
             method=aiohttp.hdrs.METH_GET,
             url=f"/device/management/{device_id}/operation/status",
             loads=OperationStatus.from_json, # type: ignore reportUnknownMemberType
-        )
+        ))
 
     async def async_device_operation(self, device_id: str, state: int = 1) -> Any:
         """Obtain the list of devices associated to a user."""

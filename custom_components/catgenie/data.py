@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import Any
 
-from dataclasses_json import LetterCase, dataclass_json
+from pydantic import ConfigDict
+from pydantic.dataclasses import dataclass
+from pydantic.utils import to_lower_camel
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
-@dataclass
+@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
 class Configuration:
     """Configuration settings for the device."""
 
@@ -30,8 +31,7 @@ class Configuration:
     binary_elements: dict[str, bool] = field(default_factory=dict[str, bool])
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
-@dataclass
+@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
 class OperationStatus:
     """Operation status of the device."""
 
@@ -46,8 +46,7 @@ class OperationStatus:
     relay_mode: int | None = None
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
-@dataclass
+@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
 class UpdateGroup:
     """Information about the update group."""
 
@@ -55,8 +54,7 @@ class UpdateGroup:
     name: str = field(default_factory=str)
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
-@dataclass
+@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
 class DeviceData:
     """Comprehensive data representation for the device."""
 
@@ -104,8 +102,7 @@ class DeviceData:
     online: bool = field(default_factory=bool)
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)  # type: ignore reportUnknownMemberType
-@dataclass
+@dataclass(config=ConfigDict(alias_generator=to_lower_camel))
 class DevicesResponse:
     """Response from the devices endpoint."""
 

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
-    BinarySensorEntity,
 )
 from homeassistant.core import HomeAssistant, callback
 
@@ -31,7 +30,7 @@ async def async_setup_entry(
 
     async_add_entities(
         {
-            # CatGenieProblemSensor(coordinator=coordinator),
+            CatGenieProblemSensor(coordinator=coordinator),
             CatGenieConnectivitySensor(coordinator=coordinator),
             CatGenieRunningSensor(coordinator=coordinator),
             CatGenieOccupancy(coordinator=coordinator),
@@ -68,13 +67,8 @@ class CatGenieBinarySensor(CatGenieEntity, BinarySensorEntity):
         #     device_class=device_class,
         # )
 
-    def is_on(self) -> (bool | None):
-        """Return true if the binary_sensor is on."""
-        return self._attr_is_on
-
 class CatGenieConnectivitySensor(
     CatGenieBinarySensor,
-    BinarySensorEntity,
 ):
     """integration_blueprint binary_sensor class."""
 
@@ -93,12 +87,13 @@ class CatGenieConnectivitySensor(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self.coordinator.data:
+            return
         self._attr_is_on = self.coordinator.data.reported_status == "connected"
         self.async_write_ha_state()
 
 class CatGenieRunningSensor(
     CatGenieBinarySensor,
-    BinarySensorEntity,
 ):
     """integration_blueprint binary_sensor class."""
 
@@ -117,13 +112,14 @@ class CatGenieRunningSensor(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self.coordinator.data:
+            return
         self._attr_is_on = self.coordinator.data.operation_status.state > 0
         self.async_write_ha_state()
 
 
 class CatGenieProblemSensor(
     CatGenieBinarySensor,
-    BinarySensorEntity,
 ):
     """integration_blueprint binary_sensor class."""
 
@@ -141,12 +137,17 @@ class CatGenieProblemSensor(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self.coordinator.data:
+            return
+        if not self.coordinator.data.operation_status:
+            self._attr_is_on = False
+            self.async_write_ha_state()
+            return
         self._attr_is_on = self.coordinator.data.operation_status.error not in ('""', "")
         self.async_write_ha_state()
 
 class CatGenieOccupancy(
     CatGenieBinarySensor,
-    BinarySensorEntity,
 ):
     """integration_blueprint binary_sensor class."""
 
@@ -164,14 +165,21 @@ class CatGenieOccupancy(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self.coordinator.data:
+            return
+        if not self.coordinator.data.operation_status:
+            self._attr_is_on = False
+            self.async_write_ha_state()
+            return
         if self.coordinator.data.operation_status.sens is None:
             self._attr_is_on = False
-        str_sens = str(self.coordinator.data.operation_status.sens)
-        if len(str_sens) > 0:
-            if str_sens == "null":
-                self._attr_is_on = False
-            else:
-                self._attr_is_on = True
         else:
-            self._attr_is_on = False
+            str_sens = str(self.coordinator.data.operation_status.sens)
+            if len(str_sens) > 0:
+                if str_sens == "null":
+                    self._attr_is_on = False
+                else:
+                    self._attr_is_on = True
+            else:
+                self._attr_is_on = False
         self.async_write_ha_state()
