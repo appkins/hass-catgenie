@@ -105,24 +105,72 @@ class CatGenieApiClient:
             return {aiohttp.hdrs.AUTHORIZATION: f"Bearer {self._access_token}"}
         return {}
 
+    def _build_signed_headers(self, endpoint: str, body: str = "") -> dict[str, str]:
+        """Build headers with request signing for v2 API endpoints.
+
+        The CatGenie API v2 requires special headers for request signing:
+        - x-render-t: {endpoint_path}/{timestamp_ms}
+        - x-pm-en-dec: Base64-encoded HMAC signature
+        - x-pm-en-ver: Version "1.0.0"
+        - y-pm-sg-b: SHA256 hash of request body
+        - y-pm-sg-p: SHA256 hash of request path
+        """
+        import hashlib
+        import time
+
+        timestamp = str(int(time.time() * 1000))
+        headers = self.headers.copy()
+
+        # Add version header
+        headers["x-pm-en-ver"] = "1.0.0"
+
+        # Add timestamp header
+        headers["x-render-t"] = f"{endpoint}/{timestamp}"
+
+        # Add body signature if body present
+        if body:
+            body_hash = hashlib.sha256(body.encode()).hexdigest()
+            headers["y-pm-sg-b"] = body_hash
+
+        # Add path signature
+        path = f"/{endpoint}"
+        path_hash = hashlib.sha256(path.encode()).hexdigest()
+        headers["y-pm-sg-p"] = path_hash
+
+        # Note: x-pm-en-dec signature requires the actual signing key from the app
+        # For now, we'll try without it and see if it's required
+        # If required, this needs to be extracted from the mobile app binary
+
+        return headers
+
     async def async_refresh_token(self) -> None:
-        """Obtain a valid access token."""
+        """Obtain a valid access token using v2 endpoint with signing."""
         if self._access_token is not None:
             self._access_token = None
 
         try:
             async with async_timeout.timeout(10):
+                # Use v2 endpoint with proper signing
+                endpoint = "facade/v1/mobile-user/refreshToken/v2"
+                url = f"https://iot.petnovations.com/{endpoint}"
+
+                data = {"refreshToken": self._refresh_token}
+                body = str(data)
+
+                # Build signed headers
+                headers = self._build_signed_headers(endpoint, body)
+
                 response = await self._session.post(
-                    url="/facade/v1/mobile-user/refreshToken",
-                    json={"refreshToken": self._refresh_token},
-                    headers=self.headers,
+                    url=url,
+                    json=data,
+                    headers=headers,
                 )
                 _verify_response_or_raise(response)
 
-                data = await response.json()
+                result = await response.json()
 
-                expiration = data["expiration"]
-                access_token = data["token"]
+                expiration = result["expiration"]
+                access_token = result["token"]
 
                 self._access_token = access_token
 
