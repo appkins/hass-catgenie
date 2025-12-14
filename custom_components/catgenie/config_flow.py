@@ -20,7 +20,7 @@ from .const import DOMAIN, LOGGER
 
 
 class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Blueprint."""
+    """Config flow for CatGenie."""
 
     VERSION = 1
 
@@ -32,9 +32,21 @@ class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
         _errors = {}
         if user_input is not None:
             try:
-                await self._test_credentials(
-                    refresh_token=user_input[CONF_TOKEN],
-                )
+                device_name = user_input.get(CONF_NAME)
+                if not device_name:
+                    # Get device name from API if not provided
+                    client = CatGenieApiClient(
+                        refresh_token=user_input[CONF_TOKEN],
+                        session=async_create_clientsession(self.hass),
+                    )
+                    device = await client.async_get_first_device()
+                    device_name = device.name or f"CatGenie {device.manufacturer_id}"
+                    user_input[CONF_NAME] = device_name
+                else:
+                    # Still validate credentials even if name is provided
+                    await self._test_credentials(
+                        refresh_token=user_input[CONF_TOKEN],
+                    )
             except CatGenieApiClientAuthenticationError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
@@ -54,15 +66,18 @@ class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
+                    vol.Optional(
                         CONF_NAME,
-                        default=(user_input or {}).get(CONF_NAME, vol.UNDEFINED),
+                        default=(user_input or {}).get(CONF_NAME, ""),
+                        description="Device name (leave empty to auto-detect)",
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
                         ),
                     ),
-                    vol.Required(CONF_TOKEN): selector.TextSelector(
+                    vol.Required(
+                        CONF_TOKEN, description="Refresh Token"
+                    ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD,
                         ),
