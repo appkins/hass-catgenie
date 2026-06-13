@@ -1,30 +1,35 @@
 # CatGenie API Authentication - Reverse Engineering Summary
 
 ## Overview
+
 Successfully reverse-engineered the authentication mechanism used by the CatGenie mobile app (v587) from the Postman collection captures.
 
 ## Authentication Flow
 
 ### 1. Phone-Based Login
+
 The CatGenie API uses phone number-based authentication with SMS verification codes.
 
 **Endpoints:**
+
 - Generate Code: `POST /ums/v1/users/generateLoginCode/v2`
 - Login: `POST /ums/v1/users/loginByPhoneNumber/v2`
 - Refresh Token: `POST /facade/v1/mobile-user/refreshToken/v2`
 
 ### 2. Request Signing
+
 All API v2 requests require special headers for request signing:
 
 ```
 x-pm-en-ver: "1.0.0"                    # Encryption version
-x-render-t: {endpoint}/{timestamp_ms}    # Timestamp header  
+x-render-t: {endpoint}/{timestamp_ms}    # Timestamp header
 x-pm-en-dec: {base64_signature}          # HMAC signature (requires secret key)
 y-pm-sg-b: {sha256_body_hash}            # Body signature
 y-pm-sg-p: {sha256_path_hash}            # Path signature
 ```
 
 **Example:**
+
 ```
 x-render-t: mobile-user/refreshToken/v2/1751877063109
 y-pm-sg-b: 205e7eedce76a80831fa8d624e1d2235310f332cbacf862a06e0ff4c7df04dc4
@@ -32,6 +37,7 @@ y-pm-sg-p: def9ab94e978e9c6a914353d743cca50cc759f84e9c5f650a2d9bac2a0ef36dd
 ```
 
 ### 3. Token Management
+
 - **Access Token**: JWT token with ~30 min expiration
 - **Refresh Token**: Long-lived JWT (expires in 2067!)
 - Token format: RS512-signed JWT
@@ -39,6 +45,7 @@ y-pm-sg-p: def9ab94e978e9c6a914353d743cca50cc759f84e9c5f650a2d9bac2a0ef36dd
 ## Implementation Status
 
 ### ✅ Completed
+
 1. **phone.py** - Phone authentication module
    - Header generation (x-render-t, y-pm-sg-b, y-pm-sg-p)
    - Request signing framework
@@ -56,6 +63,7 @@ y-pm-sg-p: def9ab94e978e9c6a914353d743cca50cc759f84e9c5f650a2d9bac2a0ef36dd
    - Tests cover header generation, signatures, token refresh
 
 ### ⚠️ Requires Mobile App Binary Analysis
+
 The following require extracting secrets from the mobile app:
 
 1. **x-pm-en-dec Signature Key**
@@ -72,18 +80,21 @@ The following require extracting secrets from the mobile app:
 
 ## Files Modified/Created
 
-### Modified:
+### Modified
+
 - `custom_components/catgenie/api.py` - Added request signing
 - `custom_components/catgenie/phone.py` - Complete rewrite with proper auth
 - `pyproject.toml` - Added `requests` dependency
 
-### Created:
+### Created
+
 - `tests/test_phone_auth.py` - Phone authentication tests
 - `tests/test_api_signing.py` - API signing tests
 
 ## Usage Example
 
-### Using Refresh Token (Works Now):
+### Using Refresh Token (Works Now)
+
 ```python
 from catgenie.api import CatGenieApiClient
 import aiohttp
@@ -93,15 +104,16 @@ async with aiohttp.ClientSession() as session:
         refresh_token="your_refresh_token_here",
         session=session
     )
-    
+
     # This will use v2 endpoint with signing
     await client.async_refresh_token()
-    
+
     # Get devices
     devices = await client.async_get_devices()
 ```
 
-### Phone Login (Requires Key Extraction):
+### Phone Login (Requires Key Extraction)
+
 ```python
 from catgenie.phone import request_login_code, login_with_code
 
@@ -136,7 +148,8 @@ To fully implement phone-based authentication:
 
 ## Testing
 
-### Run Authentication Tests:
+### Run Authentication Tests
+
 ```bash
 # Run all tests
 poetry run pytest tests/test_phone_auth.py tests/test_api_signing.py -v
@@ -145,7 +158,8 @@ poetry run pytest tests/test_phone_auth.py tests/test_api_signing.py -v
 poetry run pytest tests/test_phone_auth.py -v -p no:homeassistant
 ```
 
-### Run Phone Auth CLI:
+### Run Phone Auth CLI
+
 ```bash
 poetry run python custom_components/catgenie/phone.py
 ```
