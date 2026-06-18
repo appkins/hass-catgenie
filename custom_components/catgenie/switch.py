@@ -1,59 +1,46 @@
 """Support for CatGenie Cleaning switch."""
 
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,
     SwitchEntity,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.core import callback
 
-from .const import DOMAIN
 from .entity import CatGenieEntity, DeviceOperation
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+
+    from .coordinator import CatGenieConfigEntry
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    _: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant,  # noqa: ARG001
+    entry: CatGenieConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up SwitchBot Cloud entry."""
-    coordinator = hass.data[DOMAIN]["coordinator"]
+    """Set up the CatGenie switch platform."""
+    coordinator = entry.runtime_data
     async_add_entities(
-        {
+        [
             CatGenieSwitch(
                 coordinator=coordinator,
             ),
-        },
+        ],
     )
 
 
 class CatGenieSwitch(CatGenieEntity, SwitchEntity):
-    """Representation of a SwitchBot switch."""
+    """Representation of a CatGenie cleaning switch."""
 
     _attr_device_class = SwitchDeviceClass.SWITCH
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique ID of the entity."""
-        return f"{self.coordinator.data.manufacturer_id}_clean"
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return "Clean"
-
-    # @property
-    # def suffix(self) -> str:
-    #     """Return the suffix of the entity."""
-    #     return "Clean"
-
-    # @property
-    # def name(self) -> str:
-    #     """Return true if the switch is on."""
-    #     return f"{self._device_name} Clean"
+    _attr_name = "Clean"
+    _unique_id_suffix = "clean"
 
     async def async_turn_on(self, **_: Any) -> None:
         """Turn the device on."""
@@ -77,6 +64,6 @@ class CatGenieSwitch(CatGenieEntity, SwitchEntity):
         if not self.coordinator.data:
             return
         self._attr_is_on = (
-            self.coordinator.data.operation_status.state == DeviceOperation.ON
+            self.coordinator.data.operation_status.state == DeviceOperation.ON.value
         )
         self.async_write_ha_state()

@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import socket
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import aiohttp
 import async_timeout
+
+from .signing import generate_signature_headers
 
 
 class CatGenieApiClientError(Exception):
@@ -43,12 +45,14 @@ class CatGenieApiClient:
         self,
         refresh_token: str,
         session: aiohttp.ClientSession,
+        secret: str,
     ) -> None:
         """Sample API Client."""
         self._refresh_token = refresh_token
+        self._secret = secret
         self._access_token = None
         self._session = session
-        self._token_expiration = datetime.now(timezone.utc)
+        self._token_expiration = datetime.now(UTC)
 
     async def async_get_first_device(self) -> Any:
         """Get data from the API."""
@@ -59,7 +63,8 @@ class CatGenieApiClient:
         """Obtain the list of devices associated to a user."""
         resp = await self._api_wrapper(
             aiohttp.hdrs.METH_GET,
-            url="/device/device",
+            url="/device/device/v2",
+            params={"useFleetIndexAndGetRealConnectivity": "true"},
         )
         return resp["thingList"]
 
@@ -82,7 +87,7 @@ class CatGenieApiClient:
         """Check if the token is expired."""
         if self._access_token is None:
             return True
-        return self._token_expiration >= datetime.now(timezone.utc)
+        return self._token_expiration <= datetime.now(UTC)
 
     def has_access_token(self) -> bool:
         """Check if the token is expired."""
@@ -95,17 +100,43 @@ class CatGenieApiClient:
             return {aiohttp.hdrs.AUTHORIZATION: f"Bearer {self._access_token}"}
         return {}
 
+    def _signature_headers(
+        self,
+        method: str,
+        path: str,
+        data: dict[Any, Any] | None = None,
+        params: dict[Any, Any] | None = None,
+    ) -> dict[str, str]:
+        """Build the per-request signature headers."""
+        return generate_signature_headers(
+            secret=self._secret,
+            path=path,
+            method=method,
+            body=data,
+            params=params,
+        )
+
     async def async_refresh_token(self) -> None:
         """Obtain a valid access token."""
         if self._access_token is not None:
             self._access_token = None
 
+        path = "/facade/v1/mobile-user/refreshToken"
+        body = {"refreshToken": self._refresh_token}
+
         try:
             async with async_timeout.timeout(10):
                 response = await self._session.post(
-                    url="/facade/v1/mobile-user/refreshToken",
-                    json={"refreshToken": self._refresh_token},
-                    headers=self.headers,
+                    url=path,
+                    json=body,
+                    headers={
+                        **self.headers,
+                        **self._signature_headers(
+                            aiohttp.hdrs.METH_POST,
+                            path,
+                            data=body,
+                        ),
+                    },
                 )
                 _verify_response_or_raise(response)
 
@@ -118,7 +149,7 @@ class CatGenieApiClient:
 
                 self._token_expiration = datetime.fromtimestamp(
                     float(int(expiration) / 1000),
-                    timezone.utc,
+                    UTC,
                 )
         except Exception as exception:  # pylint: disable=broad-except
             msg = f"Error refreshing token - {exception}"
@@ -131,10 +162,14 @@ class CatGenieApiClient:
         method: str,
         url: str,
         data: dict[Any,Any] | None = None,
+        params: dict[Any,Any] | None = None,
         headers: dict[str,str] | None = None,
     ) -> Any:
         """Get information from the API."""
         real_headers = self.headers
+        real_headers.update(
+            self._signature_headers(method, url, data=data, params=params),
+        )
         if headers is not None:
             real_headers.update(headers)
 
@@ -144,6 +179,7 @@ class CatGenieApiClient:
                 url=url,
                 headers=real_headers,
                 json=data,
+                params=params,
             )
             _verify_response_or_raise(response)
             return await response.json()
@@ -153,6 +189,7 @@ class CatGenieApiClient:
         method: str,
         url: str,
         data: dict[Any,Any] | None = None,
+        params: dict[Any,Any] | None = None,
         headers: dict[str,str] | None = None,
     ) -> Any:
         """Get information from the API."""
@@ -164,6 +201,7 @@ class CatGenieApiClient:
                 method=method,
                 url=url,
                 data=data,
+                params=params,
                 headers=headers,
             )
         except CatGenieApiClientAuthenticationError:
@@ -173,6 +211,7 @@ class CatGenieApiClient:
                     method=method,
                     url=url,
                     data=data,
+                    params=params,
                     headers=headers,
                 )
             except Exception as exception:  # pylint: disable=broad-except

@@ -17,7 +17,11 @@ from .const import DOMAIN, LOGGER
 from .data import DeviceData
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
+
+type CatGenieConfigEntry = ConfigEntry[CatGenieCoordinator]
+
 
 class UnknownError(Exception):
     """Raised when an unknown error occurs during update."""
@@ -26,19 +30,24 @@ class UnknownError(Exception):
         """Initialize the error."""
         super().__init__(f"Unknown error: {args}")
 
+
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
 class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
     """Class to manage fetching data from the API."""
 
+    config_entry: CatGenieConfigEntry
+
     def __init__(
         self,
         hass: HomeAssistant,
+        config_entry: CatGenieConfigEntry,
         client: CatGenieApiClient,
     ) -> None:
         """Initialize."""
         super().__init__(
             hass=hass,
             logger=LOGGER,
+            config_entry=config_entry,
             name=DOMAIN,
             update_interval=timedelta(seconds=20),
             always_update=True,

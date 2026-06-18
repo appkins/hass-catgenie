@@ -1,34 +1,45 @@
-[tool.poetry]
+[project]
 name = "catgenie"
 version = "0.13.1"
-description = ""
-authors = ["Appkins <appkins@appkins.io>"]
+description = "Home Assistant integration for the CatGenie self-washing litter box."
+authors = [{ name = "Appkins", email = "appkins@appkins.io" }]
 license = "MIT"
-packages = [{include = "catgenie", from="custom_components"}]
+readme = "README.md"
+requires-python = ">=3.14,<4.0"
+dependencies = [
+    "async_timeout>=4.0.0",
+    "aiohttp>=3.7.4",
+    "homeassistant>=2025.9.3",
+]
 
-[tool.poetry.dependencies]
-async_timeout = "^4.0.0"
-aiohttp = "^3.7.4"
-homeassistant = "^2024.12.0"
-python = ">=3.12,<3.13"
+[tool.poetry]
+packages = [{ include = "catgenie", from = "custom_components" }]
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.12.1"
-flake8 = "^7.0.0"
-homeassistant-stubs = "^2024.12.0"
-pytest-homeassistant-custom-component = "^0.13.89"
-ruff = "^0.7.2"
-reorder-python-imports = "^3.12.0"
+black = ">=24.0.0"
+flake8 = ">=7.0.0"
+homeassistant-stubs = ">=2025.9.3"
+pytest-homeassistant-custom-component = ">=0.13.280"
+ruff = ">=0.7.2"
+reorder-python-imports = ">=3.12.0"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
 typeCheckingMode = "strict"
 reportMissingTypeStubs = "none"
 reportImportCycles = "warning"
+# Home Assistant's Entity defines `available` as a cached_property while
+# CoordinatorEntity overrides it as a plain property (intentionally, since
+# availability must not be cached). Multiply inheriting from both — the standard
+# coordinator + platform-entity pattern — trips this check on every entity, so
+# disable it. It is a framework-level inconsistency, not fixable in our code.
+reportIncompatibleVariableOverride = false
 useLibraryCodeForTypes = true
+venvPath = "."
+venv = ".venv"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

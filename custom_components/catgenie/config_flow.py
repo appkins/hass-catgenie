@@ -1,11 +1,12 @@
-"""Adds config flow for Blueprint."""
+"""Adds config flow for CatGenie."""
 
 from __future__ import annotations
 
 from typing import Any
 
 import voluptuous as vol
-from homeassistant import config_entries, data_entry_flow
+from aiohttp import hdrs
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_NAME, CONF_TOKEN
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -16,24 +17,25 @@ from .api import (
     CatGenieApiClientCommunicationError,
     CatGenieApiClientError,
 )
-from .const import DOMAIN, LOGGER
+from .const import CONF_SECRET, DOMAIN, HOST, LOGGER
 
 
-class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Blueprint."""
+class CatGenieHandler(ConfigFlow, domain=DOMAIN):
+    """Config flow for CatGenie."""
 
     VERSION = 1
 
-    async def async_step_user( # type: ignore reportInconsistentMethodOverride
+    async def async_step_user(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> data_entry_flow.FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
-        _errors = {}
+        _errors: dict[str, str] = {}
         if user_input is not None:
             try:
                 await self._test_credentials(
                     refresh_token=user_input[CONF_TOKEN],
+                    secret=user_input[CONF_SECRET],
                 )
             except CatGenieApiClientAuthenticationError as exception:
                 LOGGER.warning(exception)
@@ -48,7 +50,7 @@ class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=user_input[CONF_NAME],
                     data=user_input,
-                ) # type: ignore reportGeneralType
+                )
 
         return self.async_show_form(
             step_id="user",
@@ -67,15 +69,25 @@ class CatGenieHandler(config_entries.ConfigFlow, domain=DOMAIN):
                             type=selector.TextSelectorType.PASSWORD,
                         ),
                     ),
+                    vol.Required(CONF_SECRET): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.PASSWORD,
+                        ),
+                    ),
                 },
             ),
-            errors=_errors, # type: ignore reportGeneralTypeq
-        ) # type: ignore reportGeneralType
+            errors=_errors,
+        )
 
-    async def _test_credentials(self, refresh_token: str) -> None:
+    async def _test_credentials(self, refresh_token: str, secret: str) -> None:
         """Validate credentials."""
         client = CatGenieApiClient(
             refresh_token=refresh_token,
-            session=async_create_clientsession(self.hass),
+            secret=secret,
+            session=async_create_clientsession(
+                self.hass,
+                base_url=f"https://{HOST}",
+                headers={hdrs.HOST: HOST},
+            ),
         )
         await client.async_get_devices()

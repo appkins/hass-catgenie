@@ -1,7 +1,7 @@
-"""Custom integration to integrate integration_blueprint with Home Assistant.
+"""Custom integration to integrate CatGenie with Home Assistant.
 
 For more details about this integration, please refer to
-https://github.com/ludeeus/integration_blueprint
+https://github.com/appkins/hass-catgenie
 """
 
 from __future__ import annotations
@@ -13,14 +13,13 @@ from homeassistant.const import CONF_TOKEN, Platform
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import CatGenieApiClient
-from .const import DOMAIN, HOST
+from .const import CONF_SECRET, HOST
 from .coordinator import CatGenieCoordinator
 
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-    from .data import DeviceData
+    from .coordinator import CatGenieConfigEntry
 
 
 PLATFORMS: list[Platform] = [
@@ -33,13 +32,15 @@ PLATFORMS: list[Platform] = [
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry[DeviceData],
+    entry: CatGenieConfigEntry,
 ) -> bool:
     """Set up this integration using UI."""
     coordinator = CatGenieCoordinator(
         hass=hass,
+        config_entry=entry,
         client=CatGenieApiClient(
             refresh_token=entry.data[CONF_TOKEN],
+            secret=entry.data[CONF_SECRET],
             session=async_create_clientsession(
                 hass,
                 base_url=f"https://{HOST}",
@@ -58,12 +59,7 @@ async def async_setup_entry(
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
     await coordinator.async_config_entry_first_refresh()
 
-    hass.data[DOMAIN] = {
-        "coordinator": coordinator,
-    }
-
-    # async_add_entities(
-    #     CatGenieEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
+    entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
@@ -73,7 +69,7 @@ async def async_setup_entry(
 
 async def async_unload_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: CatGenieConfigEntry,
 ) -> bool:
     """Handle removal of an entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -81,8 +77,7 @@ async def async_unload_entry(
 
 async def async_reload_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: CatGenieConfigEntry,
 ) -> None:
     """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+    await hass.config_entries.async_reload(entry.entry_id)

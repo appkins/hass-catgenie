@@ -1,7 +1,10 @@
 {
-  "python.languageServer": "Default",
-  "python.pipenvPath": ".venv/bin/activate",
+  "python.languageServer": "Pylance",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.venvPath": "${workspaceFolder}/.venv",
+  "python.terminal.activateEnvironment": true,
   "pylint.importStrategy": "fromEnvironment",
+  "ruff.importStrategy": "fromEnvironment",
   "json.schemas": [
         {
             "fileMatch": [
@@ -9,5 +12,9 @@
             ],
             "url": "./script/json_schemas/manifest_schema.json"
         }
-    ]
+    ],
+    "workbench.colorCustomizations": {
+        "statusBar.noFolderBackground": "#15158E",
+        "statusBar.noFolderForeground": "#FCFCFF"
+    }
 }

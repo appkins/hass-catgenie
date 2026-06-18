@@ -1,5 +1,7 @@
 """Base class for CatGenie via API entities."""
 
+from __future__ import annotations
+
 from enum import Enum
 from typing import Any
 
@@ -23,8 +25,7 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
     """Representation of a CatGenie Cloud entity."""
 
     _attr_has_entity_name = True
-    _attr_suffix: str | None = None
-    coordinator: CatGenieCoordinator
+    _unique_id_suffix: str = ""
 
     def __init__(
         self,
@@ -33,22 +34,22 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
         """Initialize the entity."""
         super().__init__(coordinator)
 
-        self.coordinator = coordinator
+        manufacturer_id = coordinator.data.manufacturer_id
+        if self._unique_id_suffix:
+            self._attr_unique_id = f"{manufacturer_id}_{self._unique_id_suffix}"
 
-        # suffix = ""
-        # if self.device_class is not None:  # type: ignore reportUnnecessaryComparison
-        #     suffix = f"_{self.device_class}"
-
-        # self._attr_unique_id = (
-        #     f"{DOMAIN}_{coordinator.data.mac_address}{suffix}"
-        # )
-        # if self._attr_unique_id is None:
-        #     self._attr_unique_id = uuid4().hex
-        #     self.async_write_ha_state()
-
-        self._device_name = coordinator.data.name
-        if not self._device_name:
-            self._device_name = f"Litter Box {coordinator.data.manufacturer_id}"
+        self._device_name = coordinator.data.name or f"Litter Box {manufacturer_id}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={
+                # Serial numbers are unique identifiers within a specific domain
+                (DOMAIN, manufacturer_id),
+            },
+            name=self._device_name,
+            manufacturer="PetNovations Ltd.",
+            model="VXHCATGENIE",
+            model_id=manufacturer_id,
+            sw_version=coordinator.data.fw_version,
+        )
 
     @property
     def device_name(self) -> str:
@@ -60,40 +61,13 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
         """Return the device ID."""
         return self.coordinator.data.manufacturer_id
 
-    # @property
-    # async def device(self) -> DeviceInfo:
-        # """Return the device."""
-        # return async_get(self.hass).async_get_device((DOMAIN, self.coordinator.data.mac_address))
-
-    # @property
-    # def info(self) -> DeviceInfo:
-    #     """Return the device info."""
-    #     return DeviceInfo(
-    #         identifiers={
-    #             (DOMAIN, self.coordinator.data.mac_address),
-    #         },
-    #         name=self._device_name,
-    #         manufacturer="PetNovations Ltd.",
-    #         model="VXHCATGENIE",
-    #         model_id=self.coordinator.data.manufacturer_id,
-    #         sw_version=self.coordinator.data.fw_version,
-    #     )
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        return DeviceInfo(
-            identifiers={
-                # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, self.coordinator.data.manufacturer_id),
-            },
-            # default_name="Litter Box",
-            manufacturer="PetNovations Ltd.",
-            model="VXHCATGENIE",
-            model_id=self.coordinator.data.manufacturer_id,
-            sw_version=self.coordinator.data.fw_version,
+    async def device_operation(
+        self,
+        device_id: str,
+        op: DeviceOperation,
+    ) -> Any:
+        """Send an operation command to the device."""
+        return await self.coordinator.client.async_device_operation(
+            device_id,
+            op.value,
         )
-
-    async def device_operation(self, device_id: str, op: DeviceOperation) -> Any:
-        """Obtain the list of devices associated to a user."""
-        return await self.coordinator.client.async_device_operation(device_id, op.value)
