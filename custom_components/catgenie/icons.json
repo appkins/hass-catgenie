@@ -1,0 +1,14 @@
+{
+  "entity": {
+    "select": {
+      "mode": {
+        "default": "mdi:cog",
+        "state": {
+          "time_activation": "mdi:clock-outline",
+          "cat_activation": "mdi:cat",
+          "manual": "mdi:power"
+        }
+      }
+    }
+  }
+}

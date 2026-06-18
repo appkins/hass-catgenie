@@ -1,0 +1,59 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "CatGenie",
+        "description": "How would you like to connect?",
+        "menu_options": {
+          "phone": "Log in with phone number",
+          "manual": "Enter token manually"
+        }
+      },
+      "phone": {
+        "title": "Log in with phone number",
+        "description": "We'll text a one-time code to this number.",
+        "data": {
+          "country_code": "Country code",
+          "phone": "Phone number"
+        }
+      },
+      "code": {
+        "title": "Enter login code",
+        "description": "Enter the code sent to your phone by SMS.",
+        "data": {
+          "code": "SMS code"
+        }
+      },
+      "manual": {
+        "title": "Manual credentials",
+        "description": "Enter a captured refresh token. The signing secret is pre-filled with the app default.",
+        "data": {
+          "name": "Name",
+          "token": "Refresh token",
+          "secret": "Signing secret"
+        }
+      }
+    },
+    "error": {
+      "auth": "Invalid credentials",
+      "invalid_code": "Invalid or expired code",
+      "connection": "Failed to connect",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This account is already configured"
+    }
+  },
+  "entity": {
+    "select": {
+      "mode": {
+        "name": "Mode",
+        "state": {
+          "time_activation": "Time Activation",
+          "cat_activation": "Cat Activation",
+          "manual": "Manual"
+        }
+      }
+    }
+  }
+}

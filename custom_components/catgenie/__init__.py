@@ -8,12 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from aiohttp import hdrs
 from homeassistant.const import CONF_TOKEN, Platform
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
-from .api import CatGenieApiClient
-from .const import CONF_SECRET, HOST
+from .api import CatGenieApiClient, async_create_session
+from .const import CONF_SECRET
 from .coordinator import CatGenieCoordinator
 
 if TYPE_CHECKING:
@@ -26,6 +24,8 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
     Platform.SWITCH,
+    Platform.CALENDAR,
+    Platform.SELECT,
 ]
 
 
@@ -35,24 +35,16 @@ async def async_setup_entry(
     entry: CatGenieConfigEntry,
 ) -> bool:
     """Set up this integration using UI."""
+    session = async_create_session()
+    entry.async_on_unload(session.close)
+
     coordinator = CatGenieCoordinator(
         hass=hass,
         config_entry=entry,
         client=CatGenieApiClient(
             refresh_token=entry.data[CONF_TOKEN],
             secret=entry.data[CONF_SECRET],
-            session=async_create_clientsession(
-                hass,
-                base_url=f"https://{HOST}",
-                headers={
-                    hdrs.HOST: HOST,
-                    hdrs.USER_AGENT: "CatGenie/493 CFNetwork/1559 Darwin/24.0.0",
-                    hdrs.CONNECTION: "keep-alive",
-                    hdrs.ACCEPT: "application/json, text/plain, */*",
-                    hdrs.ACCEPT_ENCODING: "gzip, deflate, br",
-                    hdrs.ACCEPT_LANGUAGE: "en-US,en;q=0.9",
-                },
-            ),
+            session=session,
         ),
     )
 

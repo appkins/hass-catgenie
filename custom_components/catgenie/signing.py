@@ -71,27 +71,48 @@ def _hmac_sha256(key: str, message: str) -> str:
     ).hexdigest()
 
 
+def _random_suffix(length: int) -> str:
+    """Return a random alphanumeric string."""
+    alphabet = string.ascii_letters + string.digits
+    return "".join(random.choice(alphabet) for _ in range(length))  # noqa: S311
+
+
+def aes_encrypt(plaintext: str) -> str:
+    """AES-CBC encrypt (static key, zero IV, PKCS7) and base64-encode."""
+    padder = padding.PKCS7(128).padder()
+    padded = padder.update(plaintext.encode("utf-8")) + padder.finalize()
+    cipher = Cipher(algorithms.AES(_AES_KEY_BYTES), modes.CBC(_AES_IV))
+    encryptor = cipher.encryptor()
+    return base64.b64encode(
+        encryptor.update(padded) + encryptor.finalize()
+    ).decode("utf-8")
+
+
+def build_phone_token(phone: str) -> str:
+    """Build the login ``str1`` field.
+
+    Reverse engineered: AES-encrypted ``"{phone}-{random}"`` where ``phone`` is
+    the E.164 number (e.g. ``+14435691504``) and ``random`` is 8 alphanumeric
+    chars. Used by both ``generateLoginCode/v2`` and ``loginByPhoneNumber/v2``.
+    """
+    return aes_encrypt(f"{phone}-{_random_suffix(8)}")
+
+
 def _enc_dec_header(timestamp: int) -> str:
-    """Build the AES-encrypted ``x-pm-en-dec`` header value."""
+    """Build the AES-encrypted ``x-pm-en-dec`` header value.
+
+    Encrypts ``"{timestamp}-{random}"`` where ``random`` is 7 alphanumeric chars
+    with a ``Z`` inserted at a random position.
+    """
     # The app nudges the timestamp so that (timestamp // 100) is even.
     if (timestamp // 100) % 2 != 0:
         timestamp += 100
 
-    alphabet = string.ascii_letters + string.digits
-    random_part = "".join(random.choice(alphabet) for _ in range(7))  # noqa: S311
+    random_part = _random_suffix(7)
     pos = random.randint(0, len(random_part))  # noqa: S311
     random_part = f"{random_part[:pos]}Z{random_part[pos:]}"
 
-    plaintext = f"{timestamp}-{random_part}".encode()
-
-    padder = padding.PKCS7(128).padder()
-    padded = padder.update(plaintext) + padder.finalize()
-
-    cipher = Cipher(algorithms.AES(_AES_KEY_BYTES), modes.CBC(_AES_IV))
-    encryptor = cipher.encryptor()
-    encrypted = encryptor.update(padded) + encryptor.finalize()
-
-    return base64.b64encode(encrypted).decode("utf-8")
+    return aes_encrypt(f"{timestamp}-{random_part}")
 
 
 def generate_signature_headers(

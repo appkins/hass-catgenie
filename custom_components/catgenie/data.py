@@ -7,6 +7,72 @@ from typing import Any
 
 
 @dataclass
+class Activation:
+    """Sani-solution / cartridge activation state."""
+
+    date: str | None = None
+    state: int = field(default_factory=int)
+    count: int = field(default_factory=int)
+
+    @staticmethod
+    def from_dict(obj: Any) -> Activation:
+        """Parse data from API."""
+        return Activation(
+            date=obj.get("date"),
+            state=obj.get("state", 0),
+            count=obj.get("count", 0),
+        )
+
+
+@dataclass
+class Language:
+    """Device language settings (desired/actual)."""
+
+    desired: str = field(default_factory=str)
+    actual: str = field(default_factory=str)
+
+    @staticmethod
+    def from_dict(obj: Any) -> Language:
+        """Parse data from API."""
+        return Language(
+            desired=obj.get("des", ""),
+            actual=obj.get("act", ""),
+        )
+
+
+@dataclass
+class Heater:
+    """Heater configuration."""
+
+    model: int | None = None
+    temp_out_ref: int = field(default_factory=int)
+
+    @staticmethod
+    def from_dict(obj: Any) -> Heater:
+        """Parse data from API."""
+        return Heater(
+            model=obj.get("model"),
+            temp_out_ref=obj.get("tempOutRef", 0),
+        )
+
+
+@dataclass
+class BinaryElements:
+    """Optional binary wash/shake toggles."""
+
+    extra_wash: bool = field(default_factory=bool)
+    extra_shake: bool = field(default_factory=bool)
+
+    @staticmethod
+    def from_dict(obj: Any) -> BinaryElements:
+        """Parse data from API."""
+        return BinaryElements(
+            extra_wash=obj.get("EXTRA_WASH", False),
+            extra_shake=obj.get("EXTRA_SHAKE", False),
+        )
+
+
+@dataclass
 class Configuration:
     """Configuration settings for the device."""
 
@@ -23,8 +89,12 @@ class Configuration:
     dnd_to: str = field(default_factory=str)
     schedule: list[Any] = field(default_factory=list)
     cat_delay: int = field(default_factory=int)
+    pump_pct_t: int = field(default_factory=int)
     extra_dry: bool = field(default_factory=bool)
-    binary_elements: dict = field(default_factory=dict)
+    activation: Activation = field(default_factory=Activation)
+    language: Language = field(default_factory=Language)
+    heater: Heater = field(default_factory=Heater)
+    binary_elements: BinaryElements = field(default_factory=BinaryElements)
 
     @staticmethod
     def from_dict(obj: Any) -> Configuration:
@@ -43,8 +113,12 @@ class Configuration:
             dnd_to=obj.get("dndTo", ""),
             schedule=obj.get("schedule", []),
             cat_delay=obj.get("catDelay", 0),
+            pump_pct_t=obj.get("pumpPctT", 0),
             extra_dry=obj.get("extraDry", False),
-            binary_elements=obj.get("binaryElements", {}),
+            activation=Activation.from_dict(obj.get("activation", {})),
+            language=Language.from_dict(obj.get("lng", {})),
+            heater=Heater.from_dict(obj.get("heater", {})),
+            binary_elements=BinaryElements.from_dict(obj.get("binaryElements", {})),
         )
 
 
@@ -139,6 +213,7 @@ class DeviceData:
     fan_shutter: bool = field(default_factory=bool)
     dome: str | None = None
     temp_out_ref_from_desired: str | None = None
+    connection_modified_time: str | None = None
     online: bool = field(default_factory=bool)
 
     @staticmethod
@@ -186,5 +261,236 @@ class DeviceData:
             fan_shutter=obj.get("fanShutter", False),
             dome=obj.get("dome"),
             temp_out_ref_from_desired=obj.get("tempOutRefFromDesired"),
+            connection_modified_time=obj.get("connectionModifiedTime"),
             online=obj.get("online", False),
+        )
+
+
+@dataclass
+class VisitFields:
+    """Per-visit detail fields."""
+
+    rtc_start: str = field(default_factory=str)
+    serial_number: str = field(default_factory=str)
+    duration_seconds: int = field(default_factory=int)
+    device_id: str = field(default_factory=str)
+
+    @staticmethod
+    def from_dict(obj: Any) -> VisitFields:
+        """Parse data from API."""
+        return VisitFields(
+            rtc_start=obj.get("rtcStart", ""),
+            serial_number=obj.get("serialNumber", ""),
+            duration_seconds=obj.get("durationSeconds", 0),
+            device_id=obj.get("deviceId", ""),
+        )
+
+
+@dataclass
+class VisitResponse:
+    """A single cat-visit history record."""
+
+    timestamp: int = field(default_factory=int)
+    event_type: str = field(default_factory=str)
+    machine_ts: str = field(default_factory=str)
+    fields: VisitFields = field(default_factory=VisitFields)
+
+    @staticmethod
+    def from_dict(obj: Any) -> VisitResponse:
+        """Parse data from API."""
+        return VisitResponse(
+            timestamp=obj.get("timestamp", 0),
+            event_type=obj.get("type", ""),
+            machine_ts=obj.get("machineTS", ""),
+            fields=VisitFields.from_dict(obj.get("fields", {})),
+        )
+
+
+@dataclass
+class FlushFields:
+    """Per-cycle (flush/end-of-cycle) detail fields."""
+
+    rtc_end: str = field(default_factory=str)
+    serial_number: str = field(default_factory=str)
+    aborted: int = field(default_factory=int)
+
+    @staticmethod
+    def from_dict(obj: Any) -> FlushFields:
+        """Parse data from API."""
+        return FlushFields(
+            rtc_end=obj.get("rtcEnd", ""),
+            serial_number=obj.get("serialNumber", ""),
+            aborted=obj.get("aborted", 0),
+        )
+
+
+@dataclass
+class FlushResponse:
+    """A single cleaning-cycle history record."""
+
+    timestamp: int = field(default_factory=int)
+    event_type: str = field(default_factory=str)
+    machine_ts: str = field(default_factory=str)
+    fields: FlushFields = field(default_factory=FlushFields)
+
+    @staticmethod
+    def from_dict(obj: Any) -> FlushResponse:
+        """Parse data from API."""
+        return FlushResponse(
+            timestamp=obj.get("timestamp", 0),
+            event_type=obj.get("type", ""),
+            machine_ts=obj.get("machineTS", ""),
+            fields=FlushFields.from_dict(obj.get("fields", {})),
+        )
+
+
+@dataclass
+class PetResponse:
+    """A pet registered on the account."""
+
+    id: str = field(default_factory=str)
+    user_id: str = field(default_factory=str)
+    name: str = field(default_factory=str)
+    device_id: str | None = None
+    pet_type: str | None = None
+    hair_type: str | None = None
+    birthday: str | None = None
+    gender: str | None = None
+    weight: float | None = None
+    image_url: str | None = None
+    last_visit_time: str | None = None
+
+    @staticmethod
+    def from_dict(obj: Any) -> PetResponse:
+        """Parse data from API."""
+        return PetResponse(
+            id=obj.get("id", ""),
+            user_id=obj.get("userId", ""),
+            name=obj.get("name", ""),
+            device_id=obj.get("deviceId"),
+            pet_type=obj.get("petType"),
+            hair_type=obj.get("hairType"),
+            birthday=obj.get("birthday"),
+            gender=obj.get("gender"),
+            weight=obj.get("weight"),
+            image_url=obj.get("imageUrl"),
+            last_visit_time=obj.get("lastVisitTime"),
+        )
+
+
+@dataclass
+class PetStatistics:
+    """Response for ``device/history/account/pet/statistics``."""
+
+    visit_responses: list[VisitResponse] = field(default_factory=list[VisitResponse])
+    flush_responses: list[FlushResponse] = field(default_factory=list[FlushResponse])
+    pet_responses: list[PetResponse] = field(default_factory=list[PetResponse])
+
+    @staticmethod
+    def from_dict(obj: Any) -> PetStatistics:
+        """Parse data from API."""
+        return PetStatistics(
+            visit_responses=[
+                VisitResponse.from_dict(item)
+                for item in obj.get("visitResponses", [])
+            ],
+            flush_responses=[
+                FlushResponse.from_dict(item)
+                for item in obj.get("flushResponses", [])
+            ],
+            pet_responses=[
+                PetResponse.from_dict(item)
+                for item in obj.get("petResponses", [])
+            ],
+        )
+
+
+@dataclass
+class ConfigUrlResponse:
+    """Response for ``config/v1/url`` (unauthenticated base-URL probe)."""
+
+    url: str = field(default_factory=str)
+    env: str = field(default_factory=str)
+
+    @staticmethod
+    def from_dict(obj: Any) -> ConfigUrlResponse:
+        """Parse data from API."""
+        return ConfigUrlResponse(
+            url=obj.get("url", ""),
+            env=obj.get("env", ""),
+        )
+
+
+@dataclass
+class GenerateLoginCodeRequest:
+    """Body for ``ums/v1/users/generateLoginCode/v2`` (triggers the SMS code).
+
+    ``str1`` is the AES-encrypted ``"{E.164 phone}-{random}"`` token; build it
+    with ``signing.build_phone_token(phone)``.
+    """
+
+    str1: str
+
+    def to_body(self) -> dict[str, str]:
+        """Serialize to the request body."""
+        return {"str1": self.str1}
+
+
+@dataclass
+class LoginRequest:
+    """Body for ``ums/v1/users/loginByPhoneNumber/v2``.
+
+    ``str1`` is the AES-encrypted phone token (see ``signing.build_phone_token``)
+    and ``code`` is the SMS one-time code the user received.
+    """
+
+    str1: str
+    code: str
+
+    def to_body(self) -> dict[str, str]:
+        """Serialize to the request body."""
+        return {"str1": self.str1, "code": self.code}
+
+
+@dataclass
+class LoginResponse:
+    """Response for ``ums/v1/users/loginByPhoneNumber/v2``."""
+
+    user_id: str = field(default_factory=str)
+    tenant_id: str = field(default_factory=str)
+    account_id: str = field(default_factory=str)
+    email: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    access_token: str = field(default_factory=str)
+    refresh_token: str = field(default_factory=str)
+    phone: str | None = None
+    email_verified: bool = field(default_factory=bool)
+    phone_verified: bool = field(default_factory=bool)
+    password_reset_required: bool = field(default_factory=bool)
+    mfa_request_token: str | None = None
+    group_names: list[str] = field(default_factory=list[str])
+    country_codes: list[Any] | None = None
+    mfa_required: bool = field(default_factory=bool)
+
+    @staticmethod
+    def from_dict(obj: Any) -> LoginResponse:
+        """Parse data from API."""
+        return LoginResponse(
+            user_id=obj.get("userId", ""),
+            tenant_id=obj.get("tenantId", ""),
+            account_id=obj.get("accountId", ""),
+            email=obj.get("email"),
+            first_name=obj.get("firstName"),
+            last_name=obj.get("lastName"),
+            access_token=obj.get("accessToken", ""),
+            refresh_token=obj.get("refreshToken", ""),
+            phone=obj.get("phone"),
+            email_verified=obj.get("emailVerified", False),
+            phone_verified=obj.get("phoneVerified", False),
+            password_reset_required=obj.get("passwordResetRequired", False),
+            mfa_request_token=obj.get("mfaRequestToken"),
+            group_names=obj.get("groupNames", []),
+            country_codes=obj.get("countryCodes"),
+            mfa_required=obj.get("mfaRequired", False),
         )
