@@ -14,6 +14,25 @@ running in an emulator. Everything runs in containers; the host only needs
 | `token`  | `Authorization: Bearer …` / refreshToken response | `frida/capture-auth.js` |
 | `secret` | HMAC key from `javax.crypto.Mac` (reconstructable to a config secret) | `frida/capture-hmac.js` |
 | `secret` (raw) | keychain plaintext via `Cipher.doFinal` | `frida/dump-keychain.js` |
+| _all routes_ | full method/url+query/headers/body + response, every request | `frida/capture-http.js` |
+
+### Capture every route (`make http`)
+
+`frida/capture-http.js` is a full-fidelity, app-layer packet interceptor. It hooks
+**both** HTTP stacks the app uses — OkHttp 4
+(`RealCall.getResponseWithInterceptorChain$okhttp`, all React Native traffic) and
+`java.net.HttpURLConnection` (the Firebase SDKs) — so *every* request is logged
+with its method, full URL _including the query string_, all request headers
+(the `y-pm-sg`/`x-pm-en`/`x-render-t` signing set included), the request body, the
+response status, all response headers, and the response body. Because it sits
+above TLS it needs no proxy or CA install and is immune to cert pinning.
+
+```sh
+make REDROID=1 http      # -> out/capture-http.log ; then drive the app
+```
+
+Requests are tagged `#<id>` so each `REQUEST`/`RESPONSE` pair lines up. For an
+on-the-wire alternative (mitmproxy), run `make unpin` alongside an external proxy.
 
 ## Prerequisites
 

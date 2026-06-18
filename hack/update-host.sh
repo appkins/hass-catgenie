@@ -6,6 +6,6 @@ hass_host="homeassistant.appkins.io"
 hass_user="root"
 dest_dir="/homeassistant/custom_components/"
 
-scp -r -O ./custom_components/catgenie "${hass_user}@${hass_host}:${dest_dir}"
+scp -r -O ./custom_components/petnovations "${hass_user}@${hass_host}:${dest_dir}"
 
 ssh "${hass_user}@${hass_host}" 'ha core restart'

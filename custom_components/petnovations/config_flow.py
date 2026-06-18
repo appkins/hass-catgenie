@@ -108,9 +108,7 @@ class CatGenieHandler(ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
                 name = (
                     " ".join(
-                        part
-                        for part in (login.first_name, login.last_name)
-                        if part
+                        part for part in (login.first_name, login.last_name) if part
                     )
                     or "CatGenie"
                 )

@@ -9,6 +9,11 @@
           "manual": "mdi:power"
         }
       }
+    },
+    "lock": {
+      "child_lock": {
+        "default": "mdi:account-lock"
+      }
     }
   }
 }

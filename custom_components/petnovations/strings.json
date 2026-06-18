@@ -54,6 +54,11 @@
           "manual": "Manual"
         }
       }
+    },
+    "lock": {
+      "child_lock": {
+        "name": "Child lock"
+      }
     }
   }
 }

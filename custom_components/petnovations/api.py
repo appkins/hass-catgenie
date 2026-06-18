@@ -73,6 +73,24 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     response.raise_for_status()
 
 
+async def _decode_json(response: aiohttp.ClientResponse) -> Any:
+    """Decode a response body as JSON.
+
+    Centralised so every call site handles the API's quirks identically: some
+    endpoints serve JSON with a ``text/plain`` content type (so the built-in
+    ``response.json()`` content-type check is bypassed) and others return an
+    empty ``200`` body (e.g. configuration writes). A non-JSON body is returned
+    verbatim.
+    """
+    body = await response.text()
+    if not body:
+        return None
+    try:
+        return json.loads(body)
+    except ValueError:
+        return body
+
+
 class CatGenieApiClient:
     """Sample API Client."""
 
@@ -140,6 +158,17 @@ class CatGenieApiClient:
             method=aiohttp.hdrs.METH_PUT,
             url=f"/device/management/{device_id}/configuration",
             data=body,
+        )
+
+    async def async_set_child_lock(self, device_id: str, *, enabled: bool) -> Any:
+        """Enable or disable the child lock.
+
+        Sent as the ``childLock`` configuration field (1 = locked, 0 = open).
+        """
+        return await self._api_wrapper(
+            method=aiohttp.hdrs.METH_PUT,
+            url=f"/device/management/{device_id}/configuration",
+            data={"childLock": 1 if enabled else 0},
         )
 
     async def async_get_pet_statistics(
@@ -226,8 +255,7 @@ class CatGenieApiClient:
                     headers=headers,
                 )
                 response.raise_for_status()
-                # The endpoint returns JSON with a text/plain mimetype.
-                return await response.json(content_type=None)
+                return await _decode_json(response)
         except TimeoutError as exception:
             msg = f"Timeout fetching config url - {exception}"
             raise CatGenieApiClientCommunicationError(msg) from exception
@@ -275,7 +303,7 @@ class CatGenieApiClient:
                     msg = "Invalid or expired login code"
                     raise CatGenieApiClientAuthenticationError(msg)
                 response.raise_for_status()
-                data = await response.json()
+                data = await _decode_json(response)
                 return LoginResponse.from_dict(data)
         except CatGenieApiClientAuthenticationError:
             raise
@@ -311,7 +339,7 @@ class CatGenieApiClient:
                 )
                 _verify_response_or_raise(response)
 
-                data = await response.json()
+                data = await _decode_json(response)
 
                 expiration = data["expiration"]
                 access_token = data["token"]
@@ -332,9 +360,9 @@ class CatGenieApiClient:
         self,
         method: str,
         url: str,
-        data: dict[Any,Any] | None = None,
-        params: dict[Any,Any] | None = None,
-        headers: dict[str,str] | None = None,
+        data: dict[Any, Any] | None = None,
+        params: dict[Any, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> Any:
         """Get information from the API."""
         real_headers = self.headers
@@ -353,23 +381,15 @@ class CatGenieApiClient:
                 params=params,
             )
             _verify_response_or_raise(response)
-            # Some endpoints (e.g. configuration writes) return 200 with an
-            # empty or non-JSON body.
-            text = await response.text()
-            if not text:
-                return None
-            try:
-                return json.loads(text)
-            except ValueError:
-                return text
+            return await _decode_json(response)
 
     async def _api_wrapper(
         self,
         method: str,
         url: str,
-        data: dict[Any,Any] | None = None,
-        params: dict[Any,Any] | None = None,
-        headers: dict[str,str] | None = None,
+        data: dict[Any, Any] | None = None,
+        params: dict[Any, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> Any:
         """Get information from the API."""
         if self._is_token_expired():

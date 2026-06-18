@@ -83,9 +83,9 @@ def aes_encrypt(plaintext: str) -> str:
     padded = padder.update(plaintext.encode("utf-8")) + padder.finalize()
     cipher = Cipher(algorithms.AES(_AES_KEY_BYTES), modes.CBC(_AES_IV))
     encryptor = cipher.encryptor()
-    return base64.b64encode(
-        encryptor.update(padded) + encryptor.finalize()
-    ).decode("utf-8")
+    return base64.b64encode(encryptor.update(padded) + encryptor.finalize()).decode(
+        "utf-8"
+    )
 
 
 def build_phone_token(phone: str) -> str:
@@ -93,7 +93,9 @@ def build_phone_token(phone: str) -> str:
 
     Reverse engineered: AES-encrypted ``"{phone}-{random}"`` where ``phone`` is
     the E.164 number (e.g. ``+14435691504``) and ``random`` is 8 alphanumeric
-    chars. Used by both ``generateLoginCode/v2`` and ``loginByPhoneNumber/v2``.
+    chars. Decrypted app traffic confirms the suffix is random per call (the two
+    ``str1`` tokens in a single login session differ), so it carries no device
+    identity. Used by both ``generateLoginCode/v2`` and ``loginByPhoneNumber/v2``.
     """
     return aes_encrypt(f"{phone}-{_random_suffix(8)}")
 

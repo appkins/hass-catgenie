@@ -26,6 +26,7 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
     Platform.CALENDAR,
     Platform.SELECT,
+    Platform.LOCK,
 ]
 
 
