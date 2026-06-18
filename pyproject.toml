@@ -1,5 +1,5 @@
 [project]
-name = "catgenie"
+name = "petnovations"
 version = "0.13.1"
 description = "Home Assistant integration for the CatGenie self-washing litter box."
 authors = [{ name = "Appkins", email = "appkins@appkins.io" }]
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{ include = "catgenie", from = "custom_components" }]
+packages = [{ include = "petnovations", from = "custom_components" }]
 
 [tool.poetry.group.dev.dependencies]
 black = ">=24.0.0"

@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-hass_host="homeassistant.local"
+hass_host="homeassistant.appkins.io"
 hass_user="root"
 dest_dir="/homeassistant/custom_components/"
 
