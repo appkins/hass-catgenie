@@ -59,6 +59,69 @@
       "child_lock": {
         "name": "Child lock"
       }
+    },
+    "number": {
+      "cat_delay": {
+        "name": "Cat delay"
+      },
+      "volume_level": {
+        "name": "Volume"
+      },
+      "cat_sense": {
+        "name": "Cat sensitivity"
+      },
+      "pump_level": {
+        "name": "Pump level"
+      }
+    },
+    "switch": {
+      "auto_lock": {
+        "name": "Auto lock"
+      },
+      "extra_dry": {
+        "name": "Extra dry"
+      },
+      "extra_wash": {
+        "name": "Extra wash"
+      },
+      "extra_shake": {
+        "name": "Extra shake"
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Start"
+      },
+      "resume": {
+        "name": "Resume"
+      },
+      "stop": {
+        "name": "Stop"
+      },
+      "full_clean": {
+        "name": "Full clean"
+      }
+    },
+    "sensor": {
+      "progress": {
+        "name": "Cycle progress"
+      },
+      "time_remaining": {
+        "name": "Time remaining"
+      },
+      "finishes_at": {
+        "name": "Cycle finishes at"
+      }
+    },
+    "valve": {
+      "clean_cycle": {
+        "name": "Clean cycle"
+      }
+    },
+    "event": {
+      "notification": {
+        "name": "Notification"
+      }
     }
   }
 }

@@ -165,11 +165,44 @@ class CatGenieApiClient:
 
         Sent as the ``childLock`` configuration field (1 = locked, 0 = open).
         """
+        return await self.async_set_configuration(
+            device_id, childLock=1 if enabled else 0
+        )
+
+    async def async_set_configuration(self, device_id: str, **fields: Any) -> Any:
+        """Update arbitrary device configuration fields.
+
+        ``fields`` are the camelCase API keys of the ``configuration`` object
+        (e.g. ``catDelay``, ``volumeLevel``, ``extraDry``,
+        ``binaryElements={"EXTRA_WASH": True}``). The device accepts partial
+        updates, so only the supplied keys are changed.
+        """
         return await self._api_wrapper(
             method=aiohttp.hdrs.METH_PUT,
             url=f"/device/management/{device_id}/configuration",
-            data={"childLock": 1 if enabled else 0},
+            data=fields,
         )
+
+    async def async_get_notifications(self) -> list[dict[str, Any]]:
+        """Return the user's push-notification feed (cat visits, cycles, etc.).
+
+        This is the pollable counterpart to the app's ``notification/v1/mobile/
+        attach`` registration: HA has no FCM token to register for real push, so
+        we read the same events the cloud would have pushed.
+        """
+        resp = await self._api_wrapper(
+            method=aiohttp.hdrs.METH_GET,
+            url="/notification/v1/push/user",
+        )
+        if isinstance(resp, dict):
+            for key in ("notifications", "pushList", "pushes", "content"):
+                value = resp.get(key)
+                if isinstance(value, list):
+                    return value
+            return []
+        if isinstance(resp, list):
+            return resp
+        return []
 
     async def async_get_pet_statistics(
         self,

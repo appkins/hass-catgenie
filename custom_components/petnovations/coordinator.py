@@ -14,7 +14,7 @@ from .api import (
     CatGenieApiClientError,
 )
 from .const import DOMAIN, LOGGER
-from .data import DeviceData
+from .data import DeviceData, Notification
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -53,6 +53,7 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
             always_update=True,
         )
         self.client = client
+        self.notifications: list[Notification] = []
 
     async def _async_update_data(self) -> DeviceData:
         """Update data via library."""
@@ -60,6 +61,7 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
             await self.client.async_refresh_token()
         try:
             result = await self.client.async_get_first_device()
+            await self._async_update_notifications()
             return DeviceData.from_dict(result)
         except CatGenieApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
@@ -67,3 +69,12 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
             raise UpdateFailed(exception) from exception
         except Exception as exception:
             raise UnknownError from exception
+
+    async def _async_update_notifications(self) -> None:
+        """Refresh the push-notification feed (best effort, non-fatal)."""
+        try:
+            raw = await self.client.async_get_notifications()
+        except CatGenieApiClientError as exception:
+            LOGGER.debug("Could not fetch notifications: %s", exception)
+            return
+        self.notifications = [Notification.from_dict(item) for item in raw]

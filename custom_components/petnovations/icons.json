@@ -14,6 +14,69 @@
       "child_lock": {
         "default": "mdi:account-lock"
       }
+    },
+    "number": {
+      "cat_delay": {
+        "default": "mdi:timer-cog-outline"
+      },
+      "volume_level": {
+        "default": "mdi:volume-high"
+      },
+      "cat_sense": {
+        "default": "mdi:cat"
+      },
+      "pump_level": {
+        "default": "mdi:water-percent"
+      }
+    },
+    "switch": {
+      "auto_lock": {
+        "default": "mdi:lock-clock"
+      },
+      "extra_dry": {
+        "default": "mdi:hair-dryer"
+      },
+      "extra_wash": {
+        "default": "mdi:water-sync"
+      },
+      "extra_shake": {
+        "default": "mdi:vibrate"
+      }
+    },
+    "button": {
+      "start": {
+        "default": "mdi:play"
+      },
+      "resume": {
+        "default": "mdi:play-pause"
+      },
+      "stop": {
+        "default": "mdi:stop"
+      },
+      "full_clean": {
+        "default": "mdi:broom"
+      }
+    },
+    "sensor": {
+      "progress": {
+        "default": "mdi:progress-clock"
+      },
+      "time_remaining": {
+        "default": "mdi:timer-sand"
+      },
+      "finishes_at": {
+        "default": "mdi:clock-end"
+      }
+    },
+    "valve": {
+      "clean_cycle": {
+        "default": "mdi:valve"
+      }
+    },
+    "event": {
+      "notification": {
+        "default": "mdi:bell-ring"
+      }
     }
   }
 }

@@ -35,3 +35,15 @@ DERIVATION_PARAMS: Final[dict[str, str]] = {
 AES_KEY: Final[str] = "P-3Rp6d81Kw9a3Z-CyvWH0WXRieyITk6"
 # Value sent in the x-pm-en-ver header.
 EN_VER: Final[str] = "1.0.0"
+
+# Cat-activation clean delay. The app offers 5-30 minutes in 5-minute steps.
+CAT_DELAY_MIN: Final[int] = 5
+CAT_DELAY_MAX: Final[int] = 30
+CAT_DELAY_STEP: Final[int] = 5
+# Multiplier applied when reading/writing the ``catDelay`` field. The slider works
+# in minutes; set this to 60 if the device turns out to store the delay in seconds.
+CAT_DELAY_SCALE: Final[int] = 1
+
+# Approximate duration of a full clean cycle. Used to derive the remaining-time
+# sensor from the device's reported ``progress`` percentage.
+CLEAN_CYCLE_SECONDS: Final[int] = 30 * 60

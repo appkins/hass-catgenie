@@ -71,3 +71,10 @@ class CatGenieEntity(CoordinatorEntity[CatGenieCoordinator]):
             device_id,
             op.value,
         )
+
+    async def set_configuration(self, **fields: Any) -> None:
+        """Write configuration field(s) and refresh from the device."""
+        await self.coordinator.client.async_set_configuration(
+            self.device_id, **fields
+        )
+        await self.coordinator.async_request_refresh()

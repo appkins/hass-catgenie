@@ -406,6 +406,46 @@ class PetStatistics:
 
 
 @dataclass
+class Notification:
+    """A single push-notification feed item.
+
+    The cloud feed isn't strongly typed across firmware versions, so parsing is
+    deliberately tolerant: the id/type/message are pulled from whichever of the
+    known aliases is present, and the untouched payload is kept in ``raw``.
+    """
+
+    id: str = field(default_factory=str)
+    type: str = field(default_factory=str)
+    message: str = field(default_factory=str)
+    timestamp: int = field(default_factory=int)
+    device_id: str | None = None
+    raw: dict[str, Any] = field(default_factory=dict)
+
+    @staticmethod
+    def from_dict(obj: dict[str, Any]) -> Notification:
+        """Parse data from API."""
+
+        def first(*keys: str) -> Any:
+            for key in keys:
+                value = obj.get(key)
+                if value not in (None, ""):
+                    return value
+            return None
+
+        timestamp = first("timestamp", "createdAt", "creationTime", "time") or 0
+        return Notification(
+            id=str(
+                first("id", "notificationId", "pushId", "_id", "uuid") or timestamp
+            ),
+            type=str(first("type", "notificationType", "category", "event") or ""),
+            message=str(first("message", "body", "text", "description", "title") or ""),
+            timestamp=int(timestamp) if str(timestamp).isdigit() else 0,
+            device_id=first("deviceId", "manufacturerId", "thingId"),
+            raw=obj,
+        )
+
+
+@dataclass
 class ConfigUrlResponse:
     """Response for ``config/v1/url`` (unauthenticated base-URL probe)."""
 
