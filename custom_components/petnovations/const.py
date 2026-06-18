@@ -5,7 +5,7 @@ from typing import Final
 
 LOGGER: Logger = getLogger(__package__)
 
-DOMAIN: Final[str] = "catgenie"
+DOMAIN: Final[str] = "petnovations"
 ATTRIBUTION: Final[str] = "Data provided by PetNovations Ltd."
 
 HOST: Final[str] = "iot.petnovations.com"
