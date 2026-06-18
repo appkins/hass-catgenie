@@ -44,6 +44,12 @@ CAT_DELAY_STEP: Final[int] = 5
 # in minutes; set this to 60 if the device turns out to store the delay in seconds.
 CAT_DELAY_SCALE: Final[int] = 1
 
-# Approximate duration of a full clean cycle. Used to derive the remaining-time
-# sensor from the device's reported ``progress`` percentage.
+# Approximate duration of a full clean cycle, used as the default for the
+# adjustable "Run time" number that drives the remaining-time / finishes-at
+# estimates from the device's reported ``progress`` percentage.
 CLEAN_CYCLE_SECONDS: Final[int] = 30 * 60
+# Bounds for the adjustable "Run time" number (minutes).
+RUN_TIME_MIN_MINUTES: Final[int] = 5
+RUN_TIME_MAX_MINUTES: Final[int] = 60
+RUN_TIME_STEP_MINUTES: Final[int] = 5
+DEFAULT_RUN_TIME_MINUTES: Final[int] = CLEAN_CYCLE_SECONDS // 60

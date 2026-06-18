@@ -13,7 +13,7 @@ from .api import (
     CatGenieApiClientAuthenticationError,
     CatGenieApiClientError,
 )
-from .const import DOMAIN, LOGGER
+from .const import CLEAN_CYCLE_SECONDS, DOMAIN, LOGGER
 from .data import DeviceData, Notification
 
 if TYPE_CHECKING:
@@ -54,6 +54,9 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
         )
         self.client = client
         self.notifications: list[Notification] = []
+        # Assumed full-cycle length used to estimate remaining/finish time from
+        # the device's progress %. Adjustable via the "Run time" number entity.
+        self.run_time_seconds: int = CLEAN_CYCLE_SECONDS
 
     async def _async_update_data(self) -> DeviceData:
         """Update data via library."""

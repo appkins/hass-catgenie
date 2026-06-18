@@ -72,6 +72,9 @@
       },
       "pump_level": {
         "name": "Pump level"
+      },
+      "run_time": {
+        "name": "Run time"
       }
     },
     "switch": {

@@ -14,7 +14,7 @@ from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.core import callback
 from homeassistant.util import dt as dt_util
 
-from .const import CLEAN_CYCLE_SECONDS, LOGGER
+from .const import LOGGER
 from .entity import CatGenieEntity
 
 if TYPE_CHECKING:
@@ -76,12 +76,12 @@ class CatGenieProgressSensor(CatGenieEntity, SensorEntity):
         self.async_write_ha_state()
 
 
-def _remaining_seconds(state: int, progress: int) -> int:
+def _remaining_seconds(state: int, progress: int, run_time_seconds: int) -> int:
     """Estimate seconds left in the cycle from the reported progress."""
     if state == 0:
         return 0
     clamped = max(0, min(100, progress))
-    return round(CLEAN_CYCLE_SECONDS * (100 - clamped) / 100)
+    return round(run_time_seconds * (100 - clamped) / 100)
 
 
 class CatGenieTimeRemainingSensor(CatGenieEntity, SensorEntity):
@@ -103,7 +103,9 @@ class CatGenieTimeRemainingSensor(CatGenieEntity, SensorEntity):
         if not self.coordinator.data:
             return
         status = self.coordinator.data.operation_status
-        self._attr_native_value = _remaining_seconds(status.state, status.progress)
+        self._attr_native_value = _remaining_seconds(
+            status.state, status.progress, self.coordinator.run_time_seconds
+        )
         self.async_write_ha_state()
 
 
@@ -129,6 +131,8 @@ class CatGenieFinishesAtSensor(CatGenieEntity, SensorEntity):
         if status.state == 0:
             self._attr_native_value = None
         else:
-            remaining = _remaining_seconds(status.state, status.progress)
+            remaining = _remaining_seconds(
+                status.state, status.progress, self.coordinator.run_time_seconds
+            )
             self._attr_native_value = dt_util.utcnow() + timedelta(seconds=remaining)
         self.async_write_ha_state()

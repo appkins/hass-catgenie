@@ -27,6 +27,9 @@
       },
       "pump_level": {
         "default": "mdi:water-percent"
+      },
+      "run_time": {
+        "default": "mdi:timer-outline"
       }
     },
     "switch": {
