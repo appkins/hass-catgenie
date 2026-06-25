@@ -1,5 +1,10 @@
 {
   "entity": {
+    "vacuum": {
+      "litter_box": {
+        "default": "mdi:toilet"
+      }
+    },
     "select": {
       "mode": {
         "default": "mdi:cog",
@@ -47,17 +52,8 @@
       }
     },
     "button": {
-      "start": {
-        "default": "mdi:play"
-      },
       "resume": {
         "default": "mdi:play-pause"
-      },
-      "stop": {
-        "default": "mdi:stop"
-      },
-      "full_clean": {
-        "default": "mdi:broom"
       }
     },
     "sensor": {
@@ -69,11 +65,6 @@
       },
       "finishes_at": {
         "default": "mdi:clock-end"
-      }
-    },
-    "valve": {
-      "clean_cycle": {
-        "default": "mdi:valve"
       }
     },
     "event": {

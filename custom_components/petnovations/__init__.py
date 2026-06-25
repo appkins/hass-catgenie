@@ -30,7 +30,7 @@ PLATFORMS: list[Platform] = [
     Platform.LOCK,
     Platform.NUMBER,
     Platform.BUTTON,
-    Platform.VALVE,
+    Platform.VACUUM,
     Platform.EVENT,
     Platform.UPDATE,
 ]

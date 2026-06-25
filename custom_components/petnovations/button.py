@@ -29,33 +29,12 @@ class CatGenieButtonDescription(ButtonEntityDescription):
     available_fn: Callable[[OperationStatus], bool]
 
 
-# ``operation_status.state`` is 0 when idle and > 0 while a cycle is active. The
-# device has no distinct "paused" state we can read, so Resume/Stop are offered
-# whenever a cycle is running and Start/Full Clean whenever it is idle.
 BUTTONS: tuple[CatGenieButtonDescription, ...] = (
-    CatGenieButtonDescription(
-        key="start",
-        translation_key="start",
-        operation=DeviceOperation.ON,
-        available_fn=lambda status: status.state == 0,
-    ),
     CatGenieButtonDescription(
         key="resume",
         translation_key="resume",
         operation=DeviceOperation.RESUME,
         available_fn=lambda status: status.state > 0,
-    ),
-    CatGenieButtonDescription(
-        key="stop",
-        translation_key="stop",
-        operation=DeviceOperation.OFF,
-        available_fn=lambda status: status.state > 0,
-    ),
-    CatGenieButtonDescription(
-        key="full_clean",
-        translation_key="full_clean",
-        operation=DeviceOperation.FULL_CLEAN,
-        available_fn=lambda status: status.state == 0,
     ),
 )
 

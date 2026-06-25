@@ -36,7 +36,6 @@ async def async_setup_entry(
         [
             CatGenieProblemSensor(coordinator=coordinator),
             CatGenieConnectivitySensor(coordinator=coordinator),
-            CatGenieRunningSensor(coordinator=coordinator),
             CatGenieOccupancy(coordinator=coordinator),
         ],
     )
@@ -62,20 +61,6 @@ class CatGenieConnectivitySensor(CatGenieBinarySensor):
         self._attr_is_on = self.coordinator.data.reported_status == "connected"
         self.async_write_ha_state()
 
-
-class CatGenieRunningSensor(CatGenieBinarySensor):
-    """CatGenie running binary_sensor."""
-
-    _attr_device_class = BinarySensorDeviceClass.RUNNING
-    _attr_translation_key = "running"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _unique_id_suffix = "running"
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_is_on = self.coordinator.data.operation_status.state > 0
-        self.async_write_ha_state()
 
 
 class CatGenieProblemSensor(CatGenieBinarySensor):

@@ -63,9 +63,11 @@
   "entity": {
     "binary_sensor": {
       "connectivity": { "name": "Connectivity" },
-      "running": { "name": "Running" },
       "problem": { "name": "Problem" },
       "occupancy": { "name": "Occupancy" }
+    },
+    "vacuum": {
+      "litter_box": { "name": "Litter box" }
     },
     "select": {
       "mode": {
@@ -111,9 +113,6 @@
       },
       "extra_shake": {
         "name": "Extra shake"
-      },
-      "clean": {
-        "name": "Clean"
       }
     },
     "calendar": {
@@ -122,17 +121,8 @@
       }
     },
     "button": {
-      "start": {
-        "name": "Start"
-      },
       "resume": {
         "name": "Resume"
-      },
-      "stop": {
-        "name": "Stop"
-      },
-      "full_clean": {
-        "name": "Full clean"
       }
     },
     "sensor": {
@@ -147,11 +137,6 @@
       },
       "finishes_at": {
         "name": "Cycle finishes at"
-      }
-    },
-    "valve": {
-      "clean_cycle": {
-        "name": "Clean cycle"
       }
     },
     "event": {

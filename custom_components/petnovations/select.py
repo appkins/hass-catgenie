@@ -17,15 +17,11 @@ if TYPE_CHECKING:
 
 PARALLEL_UPDATES = 0
 
-# The device exposes activation as two fields: `mode` (0 = cat, 1 = time) and a
-# separate `manual` flag (1 = manual, overrides mode). The slugs are translated
-# + iconized via strings.json / icons.json.
 OPTION_CAT = "cat_activation"
 OPTION_TIME = "time_activation"
 OPTION_MANUAL = "manual"
 
 _OPTIONS = [OPTION_CAT, OPTION_TIME, OPTION_MANUAL]
-# mode value -> option slug (only when manual is off)
 _MODE_TO_OPTION: dict[int, str] = {0: OPTION_CAT, 1: OPTION_TIME}
 
 
@@ -66,7 +62,6 @@ class CatGenieModeSelect(CatGenieEntity, SelectEntity):
                 self.device_id, mode=0, manual=0
             )
         elif option == OPTION_TIME:
-            # Time activation requires a schedule; keep the device's current one.
             await self.coordinator.client.async_set_mode(
                 self.device_id, mode=1, manual=0, schedule=config.schedule
             )
@@ -74,8 +69,6 @@ class CatGenieModeSelect(CatGenieEntity, SelectEntity):
             await self.coordinator.client.async_set_mode(
                 self.device_id, mode=config.mode, manual=1
             )
-
-        # Optimistically reflect the change, then refresh from the device.
         self._attr_current_option = option
         self.async_write_ha_state()
         await self.coordinator.async_request_refresh()
