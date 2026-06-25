@@ -14,7 +14,7 @@ from .api import (
     CatGenieApiClientError,
 )
 from .const import CLEAN_CYCLE_SECONDS, CONF_SECRET, DOMAIN, LOGGER
-from .data import DeviceData, Notification
+from .data import DeviceData, FirmwareUpdate, Notification
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -54,6 +54,7 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
         )
         self.client = client
         self.notifications: list[Notification] = []
+        self.pending_firmware_update: FirmwareUpdate | None = None
         # Assumed full-cycle length used to estimate remaining/finish time from
         # the device's progress %. Adjustable via the "Run time" number entity.
         self.run_time_seconds: int = CLEAN_CYCLE_SECONDS
@@ -90,3 +91,7 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
             LOGGER.debug("Could not fetch notifications: %s", exception)
             return
         self.notifications = [Notification.from_dict(item) for item in raw]
+        self.pending_firmware_update = next(
+            (n.firmware_update for n in self.notifications if n.firmware_update),
+            None,
+        )

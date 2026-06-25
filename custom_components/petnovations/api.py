@@ -222,6 +222,27 @@ class CatGenieApiClient:
             return resp
         return []
 
+    async def async_approve_firmware_update(
+        self,
+        device_id: str,
+        version: str,
+        configuration_id: str | None = None,
+    ) -> Any:
+        """Approve a pending firmware update.
+
+        Mirrors the app's ``approveFirmwareUpdate(deviceId, version, configurationId)``
+        call: ``PUT /device/update/{deviceId}/approve`` with the version and optional
+        configurationId from the FW_UPDATE notification payload.
+        """
+        body: dict[str, Any] = {"version": version}
+        if configuration_id is not None:
+            body["configurationId"] = configuration_id
+        return await self._api_wrapper(
+            method=aiohttp.hdrs.METH_PUT,
+            url=f"/device/update/{device_id}/approve",
+            data=body,
+        )
+
     async def async_get_pet_statistics(
         self,
         start_time: datetime | None = None,

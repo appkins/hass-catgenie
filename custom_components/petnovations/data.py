@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -405,6 +406,29 @@ class PetStatistics:
         )
 
 
+NOTIFICATION_TYPE_FW_UPDATE = 24
+
+
+@dataclass
+class FirmwareUpdate:
+    """Pending firmware update sourced from a type-24 push notification."""
+
+    device_id: str = field(default_factory=str)
+    parent_device_id: str = field(default_factory=str)
+    version: str = field(default_factory=str)
+    configuration_id: str | None = None
+
+    @staticmethod
+    def from_notification_data(data: dict[str, Any]) -> FirmwareUpdate:
+        """Parse the inner ``data`` JSON of a FW_UPDATE (type 24) notification."""
+        return FirmwareUpdate(
+            device_id=data.get("deviceId", ""),
+            parent_device_id=data.get("parentDeviceId", ""),
+            version=data.get("version", ""),
+            configuration_id=data.get("configurationId"),
+        )
+
+
 @dataclass
 class Notification:
     """A single push-notification feed item.
@@ -419,6 +443,7 @@ class Notification:
     message: str = field(default_factory=str)
     timestamp: int = field(default_factory=int)
     device_id: str | None = None
+    firmware_update: FirmwareUpdate | None = None
     raw: dict[str, Any] = field(default_factory=dict)
 
     @staticmethod
@@ -433,14 +458,28 @@ class Notification:
             return None
 
         timestamp = first("timestamp", "createdAt", "creationTime", "time") or 0
+        raw_type = first("type", "notificationType", "category", "event") or ""
+
+        firmware_update: FirmwareUpdate | None = None
+        if str(raw_type) == str(NOTIFICATION_TYPE_FW_UPDATE):
+            raw_data = obj.get("data", "")
+            if isinstance(raw_data, str):
+                try:
+                    raw_data = json.loads(raw_data)
+                except (json.JSONDecodeError, ValueError):
+                    raw_data = {}
+            if isinstance(raw_data, dict):
+                firmware_update = FirmwareUpdate.from_notification_data(raw_data)
+
         return Notification(
             id=str(
                 first("id", "notificationId", "pushId", "_id", "uuid") or timestamp
             ),
-            type=str(first("type", "notificationType", "category", "event") or ""),
+            type=str(raw_type),
             message=str(first("message", "body", "text", "description", "title") or ""),
             timestamp=int(timestamp) if str(timestamp).isdigit() else 0,
             device_id=first("deviceId", "manufacturerId", "thingId"),
+            firmware_update=firmware_update,
             raw=obj,
         )
 
