@@ -35,6 +35,8 @@ if TYPE_CHECKING:
 
     from .coordinator import CatGenieConfigEntry, CatGenieCoordinator
 
+PARALLEL_UPDATES = 0
+
 
 @dataclass(frozen=True, kw_only=True)
 class CatGenieNumberDescription(NumberEntityDescription):

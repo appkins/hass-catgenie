@@ -49,7 +49,7 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
             logger=LOGGER,
             config_entry=config_entry,
             name=DOMAIN,
-            update_interval=timedelta(seconds=20),
+            update_interval=timedelta(seconds=30),
             always_update=True,
         )
         self.client = client

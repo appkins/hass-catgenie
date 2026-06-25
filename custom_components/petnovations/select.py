@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 
     from .coordinator import CatGenieConfigEntry, CatGenieCoordinator
 
+PARALLEL_UPDATES = 0
+
 # The device exposes activation as two fields: `mode` (0 = cat, 1 = time) and a
 # separate `manual` flag (1 = manual, overrides mode). The slugs are translated
 # + iconized via strings.json / icons.json.

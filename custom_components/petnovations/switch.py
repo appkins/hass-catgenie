@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 
     from .coordinator import CatGenieConfigEntry, CatGenieCoordinator
 
+PARALLEL_UPDATES = 0
+
 
 @dataclass(frozen=True, kw_only=True)
 class CatGenieConfigSwitchDescription(SwitchEntityDescription):
@@ -83,7 +85,7 @@ class CatGenieSwitch(CatGenieEntity, SwitchEntity):
     """Representation of a CatGenie cleaning switch."""
 
     _attr_device_class = SwitchDeviceClass.SWITCH
-    _attr_name = "Clean"
+    _attr_translation_key = "clean"
     _unique_id_suffix = "clean"
 
     async def async_turn_on(self, **_: Any) -> None:

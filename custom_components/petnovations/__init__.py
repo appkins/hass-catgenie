@@ -9,9 +9,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_TOKEN, Platform
+from homeassistant.helpers import device_registry as dr
 
 from .api import CatGenieApiClient, async_create_session
-from .const import CONF_SECRET
+from .const import CONF_SECRET, DOMAIN
 from .coordinator import CatGenieCoordinator
 
 if TYPE_CHECKING:
@@ -79,3 +80,15 @@ async def async_reload_entry(
 ) -> None:
     """Reload config entry."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant,
+    config_entry: CatGenieConfigEntry,
+    device_entry: dr.DeviceEntry,
+) -> bool:
+    """Allow removal of a device from the config entry."""
+    coordinator = config_entry.runtime_data
+    return not coordinator.data or device_entry.identifiers != {
+        (DOMAIN, coordinator.data.manufacturer_id)
+    }

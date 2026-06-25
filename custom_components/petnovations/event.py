@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     from .coordinator import CatGenieConfigEntry, CatGenieCoordinator
     from .data import Notification
 
+PARALLEL_UPDATES = 0
+
 # Declared event types. Any feed item whose type isn't recognised is reported as
 # the catch-all ``notification`` so HA never rejects an unexpected value.
 EVENT_OTHER = "notification"

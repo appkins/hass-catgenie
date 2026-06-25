@@ -458,27 +458,44 @@ class Notification:
             return None
 
         timestamp = first("timestamp", "createdAt", "creationTime", "time") or 0
-        raw_type = first("type", "notificationType", "category", "event") or ""
+
+        # The server embeds the notification type inside a JSON-encoded "data"
+        # string rather than at the top level (e.g. FW_UPDATE notifications have
+        # no top-level "type" key).  Parse it first so the type is available.
+        embedded: dict[str, Any] = {}
+        raw_data_field = obj.get("data")
+        if isinstance(raw_data_field, str):
+            try:
+                parsed = json.loads(raw_data_field)
+                if isinstance(parsed, dict):
+                    embedded = parsed
+            except (json.JSONDecodeError, ValueError):
+                pass
+        elif isinstance(raw_data_field, dict):
+            embedded = raw_data_field
+
+        def first_also_embedded(*keys: str) -> Any:
+            for key in keys:
+                for src in (obj, embedded):
+                    value = src.get(key)
+                    if value not in (None, ""):
+                        return value
+            return None
+
+        raw_type = first_also_embedded("type", "notificationType", "category", "event") or ""
 
         firmware_update: FirmwareUpdate | None = None
         if str(raw_type) == str(NOTIFICATION_TYPE_FW_UPDATE):
-            raw_data = obj.get("data", "")
-            if isinstance(raw_data, str):
-                try:
-                    raw_data = json.loads(raw_data)
-                except (json.JSONDecodeError, ValueError):
-                    raw_data = {}
-            if isinstance(raw_data, dict):
-                firmware_update = FirmwareUpdate.from_notification_data(raw_data)
+            firmware_update = FirmwareUpdate.from_notification_data(embedded)
 
         return Notification(
             id=str(
                 first("id", "notificationId", "pushId", "_id", "uuid") or timestamp
             ),
             type=str(raw_type),
-            message=str(first("message", "body", "text", "description", "title") or ""),
+            message=str(first_also_embedded("message", "body", "text", "description", "title") or ""),
             timestamp=int(timestamp) if str(timestamp).isdigit() else 0,
-            device_id=first("deviceId", "manufacturerId", "thingId"),
+            device_id=first_also_embedded("deviceId", "manufacturerId", "thingId"),
             firmware_update=firmware_update,
             raw=obj,
         )

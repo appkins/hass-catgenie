@@ -8,6 +8,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
 from .const import LOGGER
@@ -18,6 +19,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
     from .coordinator import CatGenieConfigEntry
+
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
@@ -49,7 +52,8 @@ class CatGenieConnectivitySensor(CatGenieBinarySensor):
     """CatGenie connectivity binary_sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
-    _attr_name = "Connectivity"
+    _attr_translation_key = "connectivity"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _unique_id_suffix = "connectivity"
 
     @callback
@@ -63,7 +67,8 @@ class CatGenieRunningSensor(CatGenieBinarySensor):
     """CatGenie running binary_sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.RUNNING
-    _attr_name = "Running"
+    _attr_translation_key = "running"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _unique_id_suffix = "running"
 
     @callback
@@ -77,7 +82,8 @@ class CatGenieProblemSensor(CatGenieBinarySensor):
     """CatGenie problem binary_sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
-    _attr_name = "Problem"
+    _attr_translation_key = "problem"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _unique_id_suffix = "problem"
 
     @callback
@@ -91,7 +97,9 @@ class CatGenieOccupancy(CatGenieBinarySensor):
     """CatGenie occupancy binary_sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.OCCUPANCY
-    _attr_name = "Occupancy"
+    _attr_translation_key = "occupancy"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _unique_id_suffix = "occupancy"
 
     @callback

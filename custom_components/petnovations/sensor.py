@@ -10,7 +10,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, UnitOfTime
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTime
 from homeassistant.core import callback
 from homeassistant.util import dt as dt_util
 
@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
     from .coordinator import CatGenieConfigEntry
+
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
@@ -46,7 +48,8 @@ async def async_setup_entry(
 class CatGenieSaniSolutionSensor(CatGenieEntity, SensorEntity):
     """Representation of a CatGenie Cloud sensor entity."""
 
-    _attr_name = "Solution"
+    _attr_translation_key = "sani_solution"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _unique_id_suffix = "sani_solution"
 
     @callback
@@ -96,6 +99,7 @@ class CatGenieTimeRemainingSensor(CatGenieEntity, SensorEntity):
     _unique_id_suffix = "time_remaining"
     _attr_device_class = SensorDeviceClass.DURATION
     _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_entity_registry_enabled_default = False
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -121,6 +125,7 @@ class CatGenieFinishesAtSensor(CatGenieEntity, SensorEntity):
     _attr_translation_key = "finishes_at"
     _unique_id_suffix = "finishes_at"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_registry_enabled_default = False
 
     @callback
     def _handle_coordinator_update(self) -> None:

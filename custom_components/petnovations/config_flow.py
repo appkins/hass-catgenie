@@ -44,6 +44,26 @@ class CatGenieHandler(ConfigFlow, domain=DOMAIN):
             menu_options=["phone", "manual"],
         )
 
+    async def async_step_reauth(
+        self,
+        entry_data: dict[str, Any],  # noqa: ARG002
+    ) -> ConfigFlowResult:
+        """Start re-authentication flow after a token expires."""
+        return self.async_show_menu(
+            step_id="reauth",
+            menu_options=["phone", "manual"],
+        )
+
+    async def async_step_reconfigure(
+        self,
+        user_input: dict[str, Any] | None = None,  # noqa: ARG002
+    ) -> ConfigFlowResult:
+        """Allow the user to reconfigure (change credentials)."""
+        return self.async_show_menu(
+            step_id="reconfigure",
+            menu_options=["phone", "manual"],
+        )
+
     async def async_step_phone(
         self,
         user_input: dict[str, Any] | None = None,
@@ -109,6 +129,16 @@ class CatGenieHandler(ConfigFlow, domain=DOMAIN):
                 LOGGER.exception(exception)
                 _errors["base"] = "unknown"
             else:
+                if entry := self._get_reauth_entry():
+                    return self.async_update_reload_and_abort(
+                        entry,
+                        data={**entry.data, CONF_TOKEN: login.refresh_token},
+                    )
+                if entry := self._get_reconfigure_entry():
+                    return self.async_update_reload_and_abort(
+                        entry,
+                        data={**entry.data, CONF_TOKEN: login.refresh_token},
+                    )
                 await self.async_set_unique_id(login.account_id)
                 self._abort_if_unique_id_configured()
                 name = (
@@ -158,6 +188,16 @@ class CatGenieHandler(ConfigFlow, domain=DOMAIN):
                 LOGGER.exception(exception)
                 _errors["base"] = "unknown"
             else:
+                if entry := self._get_reauth_entry():
+                    return self.async_update_reload_and_abort(
+                        entry,
+                        data={**entry.data, CONF_TOKEN: user_input[CONF_TOKEN], CONF_SECRET: user_input[CONF_SECRET]},
+                    )
+                if entry := self._get_reconfigure_entry():
+                    return self.async_update_reload_and_abort(
+                        entry,
+                        data={**entry.data, CONF_TOKEN: user_input[CONF_TOKEN], CONF_SECRET: user_input[CONF_SECRET]},
+                    )
                 return self.async_create_entry(
                     title=user_input[CONF_NAME],
                     data=user_input,

@@ -32,6 +32,22 @@
           "token": "Refresh token",
           "secret": "Signing secret"
         }
+      },
+      "reauth": {
+        "title": "Re-authenticate CatGenie",
+        "description": "Your session has expired. Please log in again.",
+        "menu_options": {
+          "phone": "Log in with phone number",
+          "manual": "Enter token manually"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure CatGenie",
+        "description": "Update your CatGenie credentials.",
+        "menu_options": {
+          "phone": "Log in with phone number",
+          "manual": "Enter token manually"
+        }
       }
     },
     "error": {
@@ -45,6 +61,12 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "connectivity": { "name": "Connectivity" },
+      "running": { "name": "Running" },
+      "problem": { "name": "Problem" },
+      "occupancy": { "name": "Occupancy" }
+    },
     "select": {
       "mode": {
         "name": "Mode",
@@ -89,6 +111,14 @@
       },
       "extra_shake": {
         "name": "Extra shake"
+      },
+      "clean": {
+        "name": "Clean"
+      }
+    },
+    "calendar": {
+      "activity": {
+        "name": "Activity"
       }
     },
     "button": {
@@ -106,6 +136,9 @@
       }
     },
     "sensor": {
+      "sani_solution": {
+        "name": "Sanitizing solution"
+      },
       "progress": {
         "name": "Cycle progress"
       },

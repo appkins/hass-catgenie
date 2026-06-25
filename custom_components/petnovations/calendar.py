@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 
     from .coordinator import CatGenieConfigEntry, CatGenieCoordinator
 
+PARALLEL_UPDATES = 0
+
 # On first refresh, seed this much history.
 _INITIAL_LOOKBACK = timedelta(days=30)
 # Re-fetch a small overlap before the last fetch so boundary records aren't
@@ -88,7 +90,7 @@ def _build_events(stats: PetStatistics) -> list[CalendarEvent]:
 class CatGenieActivityCalendar(CatGenieEntity, CalendarEntity):
     """A calendar of cat litter box visits and cleaning cycles."""
 
-    _attr_name = "Activity"
+    _attr_translation_key = "activity"
     _unique_id_suffix = "activity"
 
     def __init__(self, coordinator: CatGenieCoordinator) -> None:
