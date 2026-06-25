@@ -10,9 +10,9 @@ from typing import Any
 import aiohttp
 import async_timeout
 
-from .const import ENDPOINT_REFRESH, ENDPOINT_REFRESH_SIGN_PATH, HOST
+from .const import ENDPOINT_REFRESH, ENDPOINT_REFRESH_SIGN_PATH, HOST, LOGGER
 from .data import GenerateLoginCodeRequest, LoginRequest, LoginResponse
-from .signing import build_phone_token, generate_signature_headers
+from .signing import build_phone_token, deobfuscate_secret, generate_signature_headers
 
 # Default headers sent with every request (mirrors the mobile app).
 DEFAULT_HEADERS: dict[str, str] = {
@@ -103,9 +103,27 @@ class CatGenieApiClient:
         """Sample API Client."""
         self._refresh_token = refresh_token
         self._secret = secret
+        self._new_secret: str | None = None
         self._access_token = None
         self._session = session
         self._token_expiration = datetime.now(UTC)
+
+    def _check_secret_rotation(self, response: aiohttp.ClientResponse) -> None:
+        """Update the signing secret if the server sent a rotated one."""
+        header = response.headers.get("x-access-control-allow-headers", "")
+        if not header:
+            return
+        new_secret = deobfuscate_secret(header)
+        if len(new_secret) == 84 and new_secret != self._secret:
+            LOGGER.debug("Signing secret rotated by server")
+            self._secret = new_secret
+            self._new_secret = new_secret
+
+    def consume_secret_update(self) -> str | None:
+        """Return the rotated secret (if any) and clear the pending flag."""
+        secret = self._new_secret
+        self._new_secret = None
+        return secret
 
     async def async_get_first_device(self) -> Any:
         """Get data from the API."""
@@ -299,12 +317,13 @@ class CatGenieApiClient:
     async def async_generate_login_code(self, phone: str) -> None:
         """Request an SMS login code for an E.164 phone number (e.g. +1555…).
 
-        Unauthenticated; signed with the encryption header only (the app does
-        not send an HMAC signature for this call).
+        ``requireAuth: false`` — no Bearer token — but the bundle's request
+        interceptor still adds full HMAC signing for every request when the
+        secret is available.
         """
         path = "/ums/v1/users/generateLoginCode/v2"
         body = GenerateLoginCodeRequest(str1=build_phone_token(phone)).to_body()
-        headers = self._enc_only_headers(aiohttp.hdrs.METH_POST, path, data=body)
+        headers = self._signature_headers(aiohttp.hdrs.METH_POST, path, data=body)
         try:
             async with async_timeout.timeout(10):
                 response = await self._session.post(
@@ -313,6 +332,14 @@ class CatGenieApiClient:
                     headers=headers,
                 )
                 response.raise_for_status()
+                # x-content-length: 0 is the server's silent signal that the
+                # AES timestamp in x-pm-en-dec failed validation (clock skew).
+                # The response is 200 but no SMS is dispatched.
+                if response.headers.get("x-content-length") == "0":
+                    msg = "Server rejected request (clock skew): no SMS sent"
+                    raise CatGenieApiClientCommunicationError(msg)
+        except CatGenieApiClientCommunicationError:
+            raise
         except TimeoutError as exception:
             msg = f"Timeout requesting login code - {exception}"
             raise CatGenieApiClientCommunicationError(msg) from exception
@@ -415,6 +442,7 @@ class CatGenieApiClient:
                 json=data,
                 params=params,
             )
+            self._check_secret_rotation(response)
             _verify_response_or_raise(response)
             return await _decode_json(response)
 

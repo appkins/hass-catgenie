@@ -54,8 +54,13 @@ class CatGenieHandler(ConfigFlow, domain=DOMAIN):
             country_code = user_input[CONF_COUNTRY_CODE].strip()
             if not country_code.startswith("+"):
                 country_code = f"+{country_code}"
-            national = re.sub(r"\D", "", user_input[CONF_PHONE])
-            phone = f"{country_code}{national}"
+            # Strip non-digits, then remove leading zeros (mirrors app's truncateLeadingZeros).
+            national = re.sub(r"^0+", "", re.sub(r"\D", "", user_input[CONF_PHONE]))
+            # Russia (+7): server expects just the national number, no country code prefix.
+            if country_code in ("+7", "7"):
+                phone = national
+            else:
+                phone = f"{country_code}{national}"
             try:
                 await self._async_send_code(country_code, national, phone)
             except CatGenieApiClientCommunicationError as exception:
@@ -197,8 +202,6 @@ class CatGenieHandler(ConfigFlow, domain=DOMAIN):
             session=session,
         )
         try:
-            # The app hits config/v1/url with the phone before requesting a code.
-            await client.async_get_config_url(country_code, national)
             await client.async_generate_login_code(phone)
         finally:
             await session.close()

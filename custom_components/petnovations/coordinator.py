@@ -13,7 +13,7 @@ from .api import (
     CatGenieApiClientAuthenticationError,
     CatGenieApiClientError,
 )
-from .const import CLEAN_CYCLE_SECONDS, DOMAIN, LOGGER
+from .const import CLEAN_CYCLE_SECONDS, CONF_SECRET, DOMAIN, LOGGER
 from .data import DeviceData, Notification
 
 if TYPE_CHECKING:
@@ -65,13 +65,22 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
                 await self.client.async_refresh_token()
             result = await self.client.async_get_first_device()
             await self._async_update_notifications()
-            return DeviceData.from_dict(result)
+            data = DeviceData.from_dict(result)
         except CatGenieApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except CatGenieApiClientError as exception:
             raise UpdateFailed(exception) from exception
         except Exception as exception:
             raise UnknownError from exception
+
+        new_secret = self.client.consume_secret_update()
+        if new_secret:
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={**self.config_entry.data, CONF_SECRET: new_secret},
+            )
+
+        return data
 
     async def _async_update_notifications(self) -> None:
         """Refresh the push-notification feed (best effort, non-fatal)."""

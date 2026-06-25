@@ -19,6 +19,7 @@ import base64
 import hashlib
 import hmac
 import random
+import re
 import string
 import time
 from typing import Any
@@ -115,6 +116,25 @@ def _enc_dec_header(timestamp: int) -> str:
     random_part = f"{random_part[:pos]}Z{random_part[pos:]}"
 
     return aes_encrypt(f"{timestamp}-{random_part}")
+
+
+def deobfuscate_secret(header: str) -> str:
+    """Extract the signing secret from the x-access-control-allow-headers value.
+
+    The server encodes the rotated secret with three sequential transforms
+    reverse-engineered from the React Native bundle (f3 → r4 → w):
+
+    f3: A→9, "e,"→r, ","→2, "-"→F
+    r4: " A"→dc, " "→5, "en"→w, [aogT]→""
+    w:  remove every 3rd character (positions where (n+1) % 3 == 0)
+    """
+    # f3
+    s = header.replace("A", "9").replace("e,", "r").replace(",", "2").replace("-", "F")
+    # r4
+    s = s.replace(" A", "dc").replace(" ", "5").replace("en", "w")
+    s = re.sub(r"[aogT]", "", s)
+    # w: drop every 3rd character
+    return "".join(c for i, c in enumerate(s) if (i + 1) % 3 != 0)
 
 
 def generate_signature_headers(
