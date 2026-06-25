@@ -317,13 +317,14 @@ class CatGenieApiClient:
     async def async_generate_login_code(self, phone: str) -> None:
         """Request an SMS login code for an E.164 phone number (e.g. +1555…).
 
-        ``requireAuth: false`` — no Bearer token — but the bundle's request
-        interceptor still adds full HMAC signing for every request when the
-        secret is available.
+        The app sends no HMAC headers here: on a fresh install the keychain is
+        empty, so the interceptor skips signing. The secret is delivered in the
+        *response* via x-access-control-allow-headers and is only available
+        from the next request (loginByPhoneNumber) onward.
         """
         path = "/ums/v1/users/generateLoginCode/v2"
         body = GenerateLoginCodeRequest(str1=build_phone_token(phone)).to_body()
-        headers = self._signature_headers(aiohttp.hdrs.METH_POST, path, data=body)
+        headers = self._enc_only_headers(aiohttp.hdrs.METH_POST, path, data=body)
         try:
             async with async_timeout.timeout(10):
                 response = await self._session.post(

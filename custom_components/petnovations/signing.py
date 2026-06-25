@@ -20,7 +20,6 @@ import hashlib
 import hmac
 import random
 import re
-import string
 import time
 from typing import Any
 
@@ -72,10 +71,24 @@ def _hmac_sha256(key: str, message: str) -> str:
     ).hexdigest()
 
 
+_APP_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz"
+
+
 def _random_suffix(length: int) -> str:
-    """Return a random alphanumeric string."""
-    alphabet = string.ascii_letters + string.digits
-    return "".join(random.choice(alphabet) for _ in range(length))  # noqa: S311
+    """Return a random string from the app's 61-char alphabet."""
+    return "".join(random.choice(_APP_ALPHABET) for _ in range(length))  # noqa: S311
+
+
+def _app_suffix(length: int, insert: str) -> str:
+    """Return ``length`` random chars with ``insert`` injected at a random position.
+
+    Mirrors the app's ``T(I(length), insert)`` function — produces a suffix of
+    ``length + 1`` total characters with exactly one uppercase injection character.
+    Used for ``str1`` (inserts 'X') and ``x-pm-en-dec`` (inserts 'Z').
+    """
+    base = _random_suffix(length)
+    pos = random.randint(0, length)  # noqa: S311
+    return base[:pos] + insert.upper() + base[pos:]
 
 
 def aes_encrypt(plaintext: str) -> str:
@@ -92,13 +105,13 @@ def aes_encrypt(plaintext: str) -> str:
 def build_phone_token(phone: str) -> str:
     """Build the login ``str1`` field.
 
-    Reverse engineered: AES-encrypted ``"{phone}-{random}"`` where ``phone`` is
-    the E.164 number (e.g. ``+14435691504``) and ``random`` is 8 alphanumeric
-    chars. Decrypted app traffic confirms the suffix is random per call (the two
-    ``str1`` tokens in a single login session differ), so it carries no device
-    identity. Used by both ``generateLoginCode/v2`` and ``loginByPhoneNumber/v2``.
+    Mirrors the app's ``pE(phone)`` function: AES-CBC encrypt of
+    ``"{phone}-{T(I(7),'x')}"`` — 7 chars from the app alphabet with one
+    uppercase 'X' injected at a random position (8-char suffix total).
+    Confirmed against live captures: every observed suffix contains exactly
+    one 'X'.  Used by both ``generateLoginCode/v2`` and ``loginByPhoneNumber/v2``.
     """
-    return aes_encrypt(f"{phone}-{_random_suffix(8)}")
+    return aes_encrypt(f"{phone}-{_app_suffix(7, 'x')}")
 
 
 def _enc_dec_header(timestamp: int) -> str:
@@ -111,11 +124,7 @@ def _enc_dec_header(timestamp: int) -> str:
     if (timestamp // 100) % 2 != 0:
         timestamp += 100
 
-    random_part = _random_suffix(7)
-    pos = random.randint(0, len(random_part))  # noqa: S311
-    random_part = f"{random_part[:pos]}Z{random_part[pos:]}"
-
-    return aes_encrypt(f"{timestamp}-{random_part}")
+    return aes_encrypt(f"{timestamp}-{_app_suffix(7, 'z')}")
 
 
 def deobfuscate_secret(header: str) -> str:

@@ -1,14 +1,15 @@
-# CatGenie credential extraction — Docker-driven.
+# CatGenie credential extraction — Docker-driven (ReDroid, already running).
 #
-# Emulator path (x86, needs ARM translation — may fail for this arm64-only app):
-#   make up && make install && make frida && make secret
+# Normal workflow (device + app already up):
+#   make frida           # push/restart frida-server
+#   make http            # capture all traffic — drive the app manually
+#   make http-refresh    # simulate expired access token refresh
+#   make secret          # capture HMAC key only
+#   make token           # capture JWT/refresh token only
 #
-# ReDroid path (recommended — bundled arm translation; run prep once with sudo):
-#   sudo ./redroid-prep.sh
-#   make REDROID=1 up && make REDROID=1 install && make REDROID=1 frida
-#   make REDROID=1 secret      # -> out/capture-hmac.log
-#   make REDROID=1 token       # -> out/capture-auth.log
-#   make REDROID=1 down
+# First-time setup (device not yet running):
+#   sudo ./redroid-prep.sh   # load kernel modules (once per host boot)
+#   make up && make install && make frida
 
 # REDROID=1 swaps the whole flow onto the ReDroid compose file.
 ifdef REDROID
