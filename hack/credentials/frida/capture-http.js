@@ -31,9 +31,19 @@
 
 Java.perform(function () {
   console.log("[http] installing full-capture hooks");
+  // Force JIT-compiled methods back to interpreted mode so hooks fire immediately.
+  Java.deoptimizeEverything();
 
   var MAX_BODY = 1024 * 1024; // peek up to 1 MiB of each response body
   var seq = 0;
+
+  var IGNORE_HOSTS = ["bugfender.com", "firebase", "google", "gstatic", "crashlytics", "amazonaws.com"];
+  function ignored(url) {
+    for (var i = 0; i < IGNORE_HOSTS.length; i++) {
+      if (url.indexOf(IGNORE_HOSTS[i]) >= 0) return true;
+    }
+    return false;
+  }
 
   function line(s) {
     console.log("[http] " + s);
@@ -77,6 +87,9 @@ Java.perform(function () {
       if (req !== null) {
         try {
           var url = req.url().toString(); // includes the query string
+          if (ignored(url)) {
+            return this[hookName]();
+          }
           line("");
           line("===== #" + id + " REQUEST  " + req.method() + " " + url);
           dumpHeaders(req.headers(), "#" + id + " > ");
@@ -195,6 +208,10 @@ Java.perform(function () {
     Impl.getResponseCode.implementation = function () {
       if (!this._capLogged) {
         this._capLogged = true;
+        var url = safe(function () { return this.getURL().toString(); }.bind(this), "");
+        if (ignored(url)) {
+          return this.getResponseCode();
+        }
         var id = logUrlConn(this);
         var code = this.getResponseCode();
         logUrlResp(this, id);

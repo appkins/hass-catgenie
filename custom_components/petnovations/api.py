@@ -383,6 +383,8 @@ class CatGenieApiClient:
                     float(int(expiration) / 1000),
                     UTC,
                 )
+        except CatGenieApiClientAuthenticationError:
+            raise
         except Exception as exception:  # pylint: disable=broad-except
             msg = f"Error refreshing token - {exception}"
             raise CatGenieApiClientError(
@@ -446,6 +448,8 @@ class CatGenieApiClient:
                     params=params,
                     headers=headers,
                 )
+            except CatGenieApiClientAuthenticationError:
+                raise
             except Exception as exception:  # pylint: disable=broad-except
                 msg = f"Something really wrong happened! - {exception}"
                 raise CatGenieApiClientError(

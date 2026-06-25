@@ -25,7 +25,7 @@ IEXEC   := $(COMPOSE) exec tools
 # they don't persist like USB. Prepend this to any adb command run in tools.
 ADBC := adb connect $$EMULATOR_HOST:5555 >/dev/null 2>&1; adb wait-for-device;
 
-.PHONY: help prep up tools down logs web packages install frida capture secret token keychain http unpin har shell clean
+.PHONY: help prep up tools down logs web packages install frida capture secret token keychain http http-attach http-refresh unpin har shell clean
 
 prep: ## (ReDroid) Load host kernel modules — run with sudo
 	sudo ./redroid-prep.sh
@@ -71,7 +71,14 @@ keychain: ## Dump the raw keychain secret (Cipher.doFinal)
 token: ## Capture the JWT / refresh token
 	$(IEXEC) extract.sh frida/capture-auth.js
 
-http: ## Capture ALL routes (method, url+query, headers, bodies, responses)
+http: ## Capture ALL routes (method, url+query, headers, bodies, responses) — spawns fresh app
+	$(IEXEC) extract.sh frida/capture-http.js
+
+http-attach: ## Capture ALL routes by ATTACHING to already-running app (preserves state)
+	$(IEXEC) attach.sh frida/capture-http.js
+
+http-refresh: ## Stop app, set clock to 2030 (access token expired, refresh token valid), spawn with capture
+	$(EXEC) bash -lc '$(ADBC) adb shell am force-stop $$PKG; adb shell date 010112002030.00'
 	$(IEXEC) extract.sh frida/capture-http.js
 
 unpin: ## Run the SSL-unpinning script (for use with an external proxy)

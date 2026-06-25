@@ -60,9 +60,9 @@ class CatGenieCoordinator(DataUpdateCoordinator[DeviceData]):
 
     async def _async_update_data(self) -> DeviceData:
         """Update data via library."""
-        if not self.client.has_access_token():
-            await self.client.async_refresh_token()
         try:
+            if not self.client.has_access_token():
+                await self.client.async_refresh_token()
             result = await self.client.async_get_first_device()
             await self._async_update_notifications()
             return DeviceData.from_dict(result)
